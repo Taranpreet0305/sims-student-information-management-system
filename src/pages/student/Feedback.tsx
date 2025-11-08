@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,22 +13,54 @@ import { toast } from "sonner";
 export default function StudentFeedback() {
   const [loading, setLoading] = useState(false);
   const [rating, setRating] = useState(0);
+  const [studentId, setStudentId] = useState<string>("");
+  const [enrollment, setEnrollment] = useState<string>("");
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("student_id, enrollment_number")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setStudentId(data.student_id);
+        setEnrollment(data.enrollment_number);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!studentId || !enrollment) {
+      toast.error("Unable to load profile data");
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const studentId = localStorage.getItem("student_id");
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
+    const comment = (formData.get("comment") as string || "").trim();
+    
+    if (comment.length > 1000) {
+      toast.error("Comment must be less than 1000 characters");
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.from("feedback").insert({
       student_id: studentId,
-      student_enrollment: enrollmentNumber,
+      student_enrollment: enrollment,
       faculty_id: formData.get("faculty_id") as string || null,
       category: formData.get("category") as string,
       rating: rating,
-      comment: formData.get("comment") as string,
+      comment: comment,
     });
 
     if (error) {

@@ -7,6 +7,24 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const signUpSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
+  enrollment_number: z.string().min(6, "Invalid enrollment number").max(20, "Enrollment number too long"),
+  student_id: z.string().min(3, "Invalid student ID").max(20, "Student ID too long"),
+  course_name: z.string().min(2, "Course name required").max(100, "Course name too long"),
+  year: z.number().min(1).max(6),
+  section: z.string().min(1, "Section required").max(10, "Section too long"),
+  phone: z.string().optional(),
+});
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password required"),
+});
 import { GraduationCap } from "lucide-react";
 
 export default function StudentAuth() {
@@ -19,12 +37,21 @@ export default function StudentAuth() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const formValues = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+    };
+
+    const validation = loginSchema.safeParse(formValues);
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      setLoading(false);
+      return;
+    }
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: validation.data.email,
+      password: validation.data.password,
     });
 
     if (authError) {
@@ -36,7 +63,7 @@ export default function StudentAuth() {
     if (authData.user) {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("verify")
         .eq("id", authData.user.id)
         .maybeSingle();
 
@@ -61,8 +88,6 @@ export default function StudentAuth() {
       }
 
       localStorage.setItem("user_type", "student");
-      localStorage.setItem("student_id", profile.student_id);
-      localStorage.setItem("enrollment_number", profile.enrollment_number);
       toast.success("Login successful!");
       navigate("/student/dashboard");
     }
@@ -75,19 +100,28 @@ export default function StudentAuth() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const name = formData.get("name") as string;
-    const enrollmentNumber = formData.get("enrollment_number") as string;
-    const studentId = formData.get("student_id") as string;
-    const courseName = formData.get("course_name") as string;
-    const year = parseInt(formData.get("year") as string);
-    const section = formData.get("section") as string;
-    const phone = formData.get("phone") as string;
+    const formValues = {
+      email: formData.get("email") as string,
+      password: formData.get("password") as string,
+      name: formData.get("name") as string,
+      enrollment_number: formData.get("enrollment_number") as string,
+      student_id: formData.get("student_id") as string,
+      course_name: formData.get("course_name") as string,
+      year: parseInt(formData.get("year") as string),
+      section: formData.get("section") as string,
+      phone: formData.get("phone") as string || undefined,
+    };
+
+    const validation = signUpSchema.safeParse(formValues);
+    if (!validation.success) {
+      toast.error(validation.error.errors[0].message);
+      setLoading(false);
+      return;
+    }
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
+      email: validation.data.email,
+      password: validation.data.password,
       options: {
         emailRedirectTo: `${window.location.origin}/student/dashboard`,
       },
@@ -102,14 +136,14 @@ export default function StudentAuth() {
     if (authData.user) {
       const { error: profileError } = await supabase.from("profiles").insert({
         id: authData.user.id,
-        email,
-        name,
-        enrollment_number: enrollmentNumber,
-        student_id: studentId,
-        course_name: courseName,
-        year,
-        section,
-        phone,
+        email: validation.data.email,
+        name: validation.data.name,
+        enrollment_number: validation.data.enrollment_number,
+        student_id: validation.data.student_id,
+        course_name: validation.data.course_name,
+        year: validation.data.year,
+        section: validation.data.section,
+        phone: validation.data.phone || null,
         verify: false,
       });
 

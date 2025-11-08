@@ -11,11 +11,34 @@ export default function NoticeBoard() {
   const [placements, setPlacements] = useState<any[]>([]);
   const [appliedPlacements, setAppliedPlacements] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [studentId, setStudentId] = useState<string>("");
+  const [enrollment, setEnrollment] = useState<string>("");
 
   useEffect(() => {
-    loadPlacements();
-    loadApplications();
+    loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (enrollment) {
+      loadPlacements();
+      loadApplications();
+    }
+  }, [enrollment]);
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("student_id, enrollment_number")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setStudentId(data.student_id);
+        setEnrollment(data.enrollment_number);
+      }
+    }
+  };
 
   const loadPlacements = async () => {
     const { data } = await supabase
@@ -30,11 +53,10 @@ export default function NoticeBoard() {
   };
 
   const loadApplications = async () => {
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
     const { data } = await supabase
       .from("placement_applications")
       .select("placement_id")
-      .eq("enrollment_number", enrollmentNumber);
+      .eq("enrollment_number", enrollment);
 
     if (data) {
       setAppliedPlacements(new Set(data.map(a => a.placement_id)));
@@ -42,14 +64,17 @@ export default function NoticeBoard() {
   };
 
   const handleApply = async (placementId: string) => {
+    if (!studentId || !enrollment) {
+      toast.error("Unable to load profile data");
+      return;
+    }
+
     setLoading(true);
-    const studentId = localStorage.getItem("student_id");
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
 
     const { error } = await supabase.from("placement_applications").insert({
       placement_id: placementId,
       student_id: studentId,
-      enrollment_number: enrollmentNumber,
+      enrollment_number: enrollment,
     });
 
     if (error) {

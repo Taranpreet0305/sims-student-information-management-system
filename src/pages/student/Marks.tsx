@@ -8,19 +8,38 @@ import { FileText, Award } from "lucide-react";
 export default function StudentMarks() {
   const [marks, setMarks] = useState<any[]>([]);
   const [terms, setTerms] = useState<string[]>([]);
+  const [enrollment, setEnrollment] = useState<string>("");
 
   useEffect(() => {
-    loadMarks();
+    loadProfile();
   }, []);
 
+  useEffect(() => {
+    if (enrollment) {
+      loadMarks();
+    }
+  }, [enrollment]);
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("enrollment_number")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setEnrollment(data.enrollment_number);
+      }
+    }
+  };
+
   const loadMarks = async () => {
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
-    
     const { data } = await supabase
       .from("student_marks")
       .select("*")
-      .eq("enrollment_number", enrollmentNumber)
-      .order("term", { ascending: true });
+      .eq("enrollment_number", enrollment)
+      .order("term", { ascending: true});
 
     if (data) {
       setMarks(data);

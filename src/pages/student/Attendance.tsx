@@ -8,18 +8,37 @@ import { Calendar, TrendingUp, TrendingDown } from "lucide-react";
 export default function StudentAttendance() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, present: 0, absent: 0, percentage: 0 });
+  const [enrollment, setEnrollment] = useState<string>("");
 
   useEffect(() => {
-    loadAttendance();
+    loadProfile();
   }, []);
 
+  useEffect(() => {
+    if (enrollment) {
+      loadAttendance();
+    }
+  }, [enrollment]);
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("enrollment_number")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setEnrollment(data.enrollment_number);
+      }
+    }
+  };
+
   const loadAttendance = async () => {
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
-    
     const { data } = await supabase
       .from("attendance")
       .select("*")
-      .eq("enrollment_number", enrollmentNumber);
+      .eq("enrollment_number", enrollment);
 
     if (data) {
       setAttendance(data);

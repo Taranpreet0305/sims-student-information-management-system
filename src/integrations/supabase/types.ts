@@ -500,6 +500,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_current_user_enrollment: { Args: never; Returns: string }
+      get_current_user_student_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

@@ -7,6 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const signUpSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
+  faculty_id: z.string().min(3, "Invalid faculty ID").max(20, "Faculty ID too long"),
+  department: z.string().min(2, "Department required").max(100, "Department name too long"),
+  phone: z.string().optional(),
+});
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password required"),
+});
 import { BookOpen } from "lucide-react";
 
 export default function FacultyAuth() {

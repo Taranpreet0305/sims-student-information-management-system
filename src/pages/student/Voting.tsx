@@ -10,11 +10,32 @@ export default function StudentVoting() {
   const [elections, setElections] = useState<any[]>([]);
   const [votedElections, setVotedElections] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [enrollment, setEnrollment] = useState<string>("");
 
   useEffect(() => {
-    loadElections();
-    loadVotedElections();
+    loadProfile();
   }, []);
+
+  useEffect(() => {
+    if (enrollment) {
+      loadElections();
+      loadVotedElections();
+    }
+  }, [enrollment]);
+
+  const loadProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("profiles")
+        .select("enrollment_number")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setEnrollment(data.enrollment_number);
+      }
+    }
+  };
 
   const loadElections = async () => {
     const { data } = await supabase
@@ -32,11 +53,10 @@ export default function StudentVoting() {
   };
 
   const loadVotedElections = async () => {
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
     const { data } = await supabase
       .from("votes")
       .select("election_id")
-      .eq("voter_enrollment", enrollmentNumber);
+      .eq("voter_enrollment", enrollment);
 
     if (data) {
       setVotedElections(new Set(data.map(v => v.election_id)));
@@ -45,12 +65,11 @@ export default function StudentVoting() {
 
   const handleVote = async (electionId: string, candidateId: string) => {
     setLoading(true);
-    const enrollmentNumber = localStorage.getItem("enrollment_number");
 
     const { error } = await supabase.from("votes").insert({
       election_id: electionId,
       candidate_id: candidateId,
-      voter_enrollment: enrollmentNumber,
+      voter_enrollment: enrollment,
     });
 
     if (error) {
