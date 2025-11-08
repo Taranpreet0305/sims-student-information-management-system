@@ -18,6 +18,15 @@ const NoticeBoard = lazy(() => import("./pages/student/NoticeBoard"));
 const StudentFeedback = lazy(() => import("./pages/student/Feedback"));
 const CRView = lazy(() => import("./pages/student/CRView"));
 
+const FacultyDashboard = lazy(() => import("./pages/faculty/Dashboard"));
+const ApproveStudents = lazy(() => import("./pages/faculty/ApproveStudents"));
+const ManageAttendance = lazy(() => import("./pages/faculty/ManageAttendance"));
+const UploadMarks = lazy(() => import("./pages/faculty/UploadMarks"));
+const ViewFeedback = lazy(() => import("./pages/faculty/ViewFeedback"));
+const FacultyNotifications = lazy(() => import("./pages/faculty/Notifications"));
+const ManageElections = lazy(() => import("./pages/faculty/ManageElections"));
+const ApproveFaculty = lazy(() => import("./pages/faculty/ApproveFaculty"));
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -31,6 +40,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/student-auth" element={<StudentAuth />} />
             <Route path="/faculty-auth" element={<FacultyAuth />} />
+            
+            {/* Student Routes */}
             <Route path="/student/dashboard" element={<StudentDashboard />} />
             <Route path="/student/attendance" element={<StudentAttendance />} />
             <Route path="/student/marks" element={<StudentMarks />} />
@@ -39,6 +50,17 @@ const App = () => (
             <Route path="/student/notice-board" element={<NoticeBoard />} />
             <Route path="/student/feedback" element={<StudentFeedback />} />
             <Route path="/student/cr-view" element={<CRView />} />
+            
+            {/* Faculty Routes */}
+            <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
+            <Route path="/faculty/approve-students" element={<ApproveStudents />} />
+            <Route path="/faculty/add-attendance" element={<ManageAttendance />} />
+            <Route path="/faculty/upload-marks" element={<UploadMarks />} />
+            <Route path="/faculty/view-feedbacks" element={<ViewFeedback />} />
+            <Route path="/faculty/notifications" element={<FacultyNotifications />} />
+            <Route path="/faculty/manage-elections" element={<ManageElections />} />
+            <Route path="/faculty/approve-faculty" element={<ApproveFaculty />} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
