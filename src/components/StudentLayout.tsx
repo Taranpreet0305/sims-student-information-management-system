@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MobileNav, studentNavItems } from "@/components/MobileNav";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -104,32 +105,12 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </nav>
         </aside>
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 p-6 pb-20 lg:pb-6">
           {children}
         </main>
       </div>
-
-      {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 border-t bg-card/95 backdrop-blur">
-        <div className="grid grid-cols-4 gap-1 p-2">
-          {navItems.slice(0, 4).map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  size="sm"
-                  className="w-full flex flex-col h-auto py-2"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-xs mt-1">{item.label}</span>
-                </Button>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      
+      <MobileNav items={studentNavItems} />
     </div>
   );
 }

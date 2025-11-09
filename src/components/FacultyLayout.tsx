@@ -6,11 +6,13 @@ import { BookOpen, Home, UserCheck, Calendar, Upload, MessageSquare, Bell, Vote,
 import { toast } from "sonner";
 import { NotificationBell } from "@/components/NotificationBell";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MobileNav, facultyNavItems } from "@/components/MobileNav";
 
 export default function FacultyLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<any>(null);
+  const [roles, setRoles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +40,13 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
       return;
     }
 
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
     setProfile(profileData);
+    setRoles(rolesData || []);
     setLoading(false);
   };
 
@@ -53,8 +61,13 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
+  const isAdmin = roles.some((r: any) => r.role === 'admin');
+
   const navItems = [
     { path: "/faculty/dashboard", icon: Home, label: "Dashboard" },
+    ...(isAdmin 
+      ? [{ path: "/faculty/admin-dashboard", icon: Shield, label: "Admin Dashboard" }] 
+      : []),
     { path: "/faculty/approve-students", icon: UserCheck, label: "Approve Students" },
     { path: "/faculty/approve-faculty", icon: Users, label: "Approve Faculty" },
     { path: "/faculty/student-performance", icon: TrendingUp, label: "Performance" },
@@ -111,32 +124,12 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           </nav>
         </aside>
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 p-6 pb-20 lg:pb-6">
           {children}
         </main>
       </div>
-
-      {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 border-t bg-card/95 backdrop-blur">
-        <div className="grid grid-cols-4 gap-1 p-2">
-          {navItems.slice(0, 4).map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={isActive ? "secondary" : "ghost"}
-                  size="sm"
-                  className="w-full flex flex-col h-auto py-2"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-xs mt-1">{item.label}</span>
-                </Button>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+      
+      <MobileNav items={facultyNavItems} />
     </div>
   );
 }

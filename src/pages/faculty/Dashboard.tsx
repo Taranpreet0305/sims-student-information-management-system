@@ -15,6 +15,16 @@ interface DashboardStats {
   attendanceBySubject: { subject: string; percentage: number }[];
 }
 
+interface ClassRepresentative {
+  id: string;
+  name: string;
+  enrollment_number: string;
+  course_name: string;
+  year: number;
+  section: string;
+  designated_at: string;
+}
+
 export default function FacultyDashboard() {
   const { profile, isAdmin, isModerator, isClassCoordinator, loading } = useFacultyRole();
   const [stats, setStats] = useState<DashboardStats>({
@@ -23,13 +33,36 @@ export default function FacultyDashboard() {
     averageAttendance: 0,
     attendanceBySubject: [],
   });
+  const [classReps, setClassReps] = useState<ClassRepresentative[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     if (profile) {
       loadDashboardStats();
+      loadClassRepresentatives();
     }
   }, [profile, isAdmin, isClassCoordinator]);
+
+  const loadClassRepresentatives = async () => {
+    try {
+      let query = supabase.from("class_representatives").select("*");
+      
+      if (!isAdmin && isClassCoordinator && profile) {
+        query = query
+          .eq("course_name", profile.assigned_course)
+          .eq("year", profile.assigned_year)
+          .eq("section", profile.assigned_section);
+      }
+
+      const { data } = await query.order("course_name").order("year").order("section");
+      
+      if (data) {
+        setClassReps(data);
+      }
+    } catch (error) {
+      console.error("Error loading class representatives:", error);
+    }
+  };
 
   const loadDashboardStats = async () => {
     if (!profile) return;
@@ -286,6 +319,32 @@ export default function FacultyDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {classReps.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Class Representatives</CardTitle>
+              <CardDescription>Current CRs across all classes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {classReps.map((cr) => (
+                  <div key={cr.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <p className="font-medium">{cr.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {cr.enrollment_number}
+                      </p>
+                    </div>
+                    <Badge variant="outline">
+                      {cr.course_name} Y{cr.year} ({cr.section})
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </FacultyLayout>
   );

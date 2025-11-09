@@ -33,6 +33,7 @@ const StudyMaterials = lazy(() => import("./pages/student/StudyMaterials"));
 const FacultyStudyMaterials = lazy(() => import("./pages/faculty/StudyMaterials"));
 const ManageNotices = lazy(() => import("./pages/faculty/ManageNotices"));
 const ManagePlacements = lazy(() => import("./pages/faculty/ManagePlacements"));
+const AdminDashboard = lazy(() => import("./pages/faculty/AdminDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
             <Route path="/faculty/study-materials" element={<FacultyStudyMaterials />} />
             <Route path="/faculty/notices" element={<ManageNotices />} />
             <Route path="/faculty/placements" element={<ManagePlacements />} />
+            <Route path="/faculty/admin-dashboard" element={<AdminDashboard />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
