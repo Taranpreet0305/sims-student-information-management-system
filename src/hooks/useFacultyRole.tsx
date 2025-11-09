@@ -60,7 +60,7 @@ export function useFacultyRole() {
     }
   };
 
-  const hasRole = (role: "admin" | "moderator" | "user") => {
+  const hasRole = (role: string) => {
     return roles.some(r => r.role === role);
   };
 

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Home, UserCheck, Calendar, Upload, MessageSquare, Bell, Vote, Users, LogOut } from "lucide-react";
+import { BookOpen, Home, UserCheck, Calendar, Upload, MessageSquare, Bell, Vote, Users, LogOut, TrendingUp, Shield, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export default function FacultyLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -54,12 +55,15 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
   const navItems = [
     { path: "/faculty/dashboard", icon: Home, label: "Dashboard" },
     { path: "/faculty/approve-students", icon: UserCheck, label: "Approve Students" },
+    { path: "/faculty/approve-faculty", icon: Users, label: "Approve Faculty" },
+    { path: "/faculty/student-performance", icon: TrendingUp, label: "Performance" },
+    { path: "/faculty/analytics", icon: BarChart3, label: "Analytics" },
     { path: "/faculty/add-attendance", icon: Calendar, label: "Add Attendance" },
     { path: "/faculty/upload-marks", icon: Upload, label: "Upload Marks" },
     { path: "/faculty/view-feedbacks", icon: MessageSquare, label: "View Feedbacks" },
     { path: "/faculty/notifications", icon: Bell, label: "Announcements" },
     { path: "/faculty/manage-elections", icon: Vote, label: "Manage Elections" },
-    { path: "/faculty/approve-faculty", icon: Users, label: "Approve Faculty" },
+    { path: "/faculty/manage-roles", icon: Shield, label: "Manage Roles" },
   ];
 
   return (
@@ -71,6 +75,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
             <span className="font-bold text-lg hidden sm:inline">Faculty Portal</span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
+            {profile && <NotificationBell facultyId={profile.id} />}
             <span className="text-sm text-muted-foreground hidden md:inline">
               {profile?.name}
             </span>

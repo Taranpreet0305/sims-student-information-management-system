@@ -26,6 +26,10 @@ const ViewFeedback = lazy(() => import("./pages/faculty/ViewFeedback"));
 const FacultyNotifications = lazy(() => import("./pages/faculty/Notifications"));
 const ManageElections = lazy(() => import("./pages/faculty/ManageElections"));
 const ApproveFaculty = lazy(() => import("./pages/faculty/ApproveFaculty"));
+const StudentPerformance = lazy(() => import("./pages/faculty/StudentPerformance"));
+const Analytics = lazy(() => import("./pages/faculty/Analytics"));
+const ManageRoles = lazy(() => import("./pages/faculty/ManageRoles"));
+const Placements = lazy(() => import("./pages/student/Placements"));
 
 const queryClient = new QueryClient();
 
@@ -57,9 +61,13 @@ const App = () => (
             <Route path="/faculty/add-attendance" element={<ManageAttendance />} />
             <Route path="/faculty/upload-marks" element={<UploadMarks />} />
             <Route path="/faculty/view-feedbacks" element={<ViewFeedback />} />
-            <Route path="/faculty/notifications" element={<FacultyNotifications />} />
-            <Route path="/faculty/manage-elections" element={<ManageElections />} />
-            <Route path="/faculty/approve-faculty" element={<ApproveFaculty />} />
+        <Route path="/faculty/notifications" element={<FacultyNotifications />} />
+        <Route path="/faculty/manage-elections" element={<ManageElections />} />
+        <Route path="/faculty/approve-faculty" element={<ApproveFaculty />} />
+        <Route path="/faculty/student-performance" element={<StudentPerformance />} />
+        <Route path="/faculty/analytics" element={<Analytics />} />
+        <Route path="/faculty/manage-roles" element={<ManageRoles />} />
+        <Route path="/student/placements" element={<Placements />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

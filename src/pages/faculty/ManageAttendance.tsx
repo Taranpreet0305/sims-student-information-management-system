@@ -5,13 +5,73 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, Upload, FileText } from "lucide-react";
+import { Calendar, Upload, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { useFacultyRole } from "@/hooks/useFacultyRole";
 
 export default function ManageAttendance() {
+  const { profile, isAdmin, isClassCoordinator } = useFacultyRole();
   const [loading, setLoading] = useState(false);
   const [csvData, setCsvData] = useState("");
+
+  const exportToCSV = async () => {
+    try {
+      let query = supabase.from("attendance").select("*");
+
+      if (!isAdmin && isClassCoordinator && profile) {
+        const { data: students } = await supabase
+          .from("profiles")
+          .select("enrollment_number")
+          .eq("course_name", profile.assigned_course)
+          .eq("year", profile.assigned_year)
+          .eq("section", profile.assigned_section);
+
+        if (students && students.length > 0) {
+          const enrollmentNumbers = students.map(s => s.enrollment_number);
+          query = query.in("enrollment_number", enrollmentNumbers);
+        }
+      }
+
+      const { data: attendanceData } = await query.order("date", { ascending: false });
+
+      if (!attendanceData || attendanceData.length === 0) {
+        toast.error("No attendance data to export");
+        return;
+      }
+
+      // Create CSV content
+      const headers = ["Enrollment Number", "Student ID", "Subject", "Date", "Total Classes", "Classes Attended", "Percentage"];
+      const rows = attendanceData.map((record: any) => [
+        record.enrollment_number,
+        record.student_id,
+        record.subject,
+        record.date,
+        record.total_classes,
+        record.classes_attended,
+        record.total_classes > 0 ? ((record.classes_attended / record.total_classes) * 100).toFixed(2) + "%" : "0%"
+      ]);
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.join(","))
+      ].join("\n");
+
+      // Download CSV
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `attendance-report-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      toast.success("Attendance report exported successfully");
+    } catch (error) {
+      console.error("Error exporting attendance:", error);
+      toast.error("Failed to export attendance report");
+    }
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,9 +139,15 @@ export default function ManageAttendance() {
   return (
     <FacultyLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Manage Attendance</h1>
-          <p className="text-muted-foreground">Upload student attendance records via CSV</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Manage Attendance</h1>
+            <p className="text-muted-foreground">Upload student attendance records via CSV</p>
+          </div>
+          <Button onClick={exportToCSV} variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

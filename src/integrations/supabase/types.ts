@@ -172,6 +172,47 @@ export type Database = {
         }
         Relationships: []
       }
+      faculty_notifications: {
+        Row: {
+          created_at: string | null
+          faculty_id: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          read: boolean | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          faculty_id?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          read?: boolean | null
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string | null
+          faculty_id?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          read?: boolean | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_notifications_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faculty_profiles: {
         Row: {
           assigned_course: string | null
@@ -184,6 +225,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          position: string | null
           updated_at: string | null
           verify: boolean | null
         }
@@ -198,6 +240,7 @@ export type Database = {
           id: string
           name: string
           phone?: string | null
+          position?: string | null
           updated_at?: string | null
           verify?: boolean | null
         }
@@ -212,6 +255,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          position?: string | null
           updated_at?: string | null
           verify?: boolean | null
         }
@@ -282,6 +326,44 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      performance_reports: {
+        Row: {
+          created_at: string | null
+          enrollment_number: string
+          generated_by: string | null
+          id: string
+          report_data: Json
+          student_id: string
+          term: string
+        }
+        Insert: {
+          created_at?: string | null
+          enrollment_number: string
+          generated_by?: string | null
+          id?: string
+          report_data: Json
+          student_id: string
+          term: string
+        }
+        Update: {
+          created_at?: string | null
+          enrollment_number?: string
+          generated_by?: string | null
+          id?: string
+          report_data?: Json
+          student_id?: string
+          term?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "faculty_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       placement_applications: {
         Row: {
@@ -502,6 +584,7 @@ export type Database = {
     Functions: {
       get_current_user_enrollment: { Args: never; Returns: string }
       get_current_user_student_id: { Args: never; Returns: string }
+      has_elevated_role: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -520,6 +603,7 @@ export type Database = {
         | "class_coordinator"
         | "associate_professor"
         | "assistant_professor"
+        | "placement_coordinator"
       candidate_position:
         | "president"
         | "vice_president"
@@ -662,6 +746,7 @@ export const Constants = {
         "class_coordinator",
         "associate_professor",
         "assistant_professor",
+        "placement_coordinator",
       ],
       candidate_position: [
         "president",

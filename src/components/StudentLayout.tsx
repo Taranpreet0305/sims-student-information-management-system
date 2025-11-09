@@ -55,10 +55,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { path: "/student/dashboard", icon: Home, label: "Dashboard" },
     { path: "/student/attendance", icon: Calendar, label: "Attendance" },
     { path: "/student/marks", icon: FileText, label: "Marks" },
-    { path: "/student/voting", icon: Vote, label: "Voting" },
-    { path: "/student/notifications", icon: Bell, label: "Notifications" },
-    { path: "/student/notice-board", icon: Briefcase, label: "Notice Board" },
     { path: "/student/feedback", icon: MessageSquare, label: "Feedback" },
+    { path: "/student/notice-board", icon: Bell, label: "Notices" },
+    { path: "/student/placements", icon: Briefcase, label: "Placements" },
+    { path: "/student/voting", icon: Vote, label: "Voting" },
     { path: "/student/cr-view", icon: Users, label: "Class CR" },
   ];
 
