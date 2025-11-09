@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { FileText, Award } from "lucide-react";
 
 export default function StudentMarks() {
@@ -63,13 +65,90 @@ export default function StudentMarks() {
     return { totalMarks, totalCredits, avgPercentage: Math.round(avgPercentage) };
   };
 
+  const chartData = marks.map((mark) => ({
+    subject: mark.subject.substring(0, 15),
+    marks: Number(mark.total_marks) || 0,
+  }));
+
+  const avgMarks = marks.length > 0
+    ? Math.round(marks.reduce((sum, m) => sum + (Number(m.total_marks) || 0), 0) / marks.length)
+    : 0;
+
   return (
     <StudentLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Marks</h1>
-          <p className="text-muted-foreground">View your academic performance</p>
+          <h1 className="text-3xl font-bold mb-2">My Marks</h1>
+          <p className="text-muted-foreground">View your academic performance and grades</p>
         </div>
+
+        {marks.length > 0 && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Subjects</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{marks.length}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average Marks</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{avgMarks}%</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Credits</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {marks.reduce((sum, m) => sum + (m.credits || 0), 0)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {marks.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={{
+                  marks: {
+                    label: "Marks",
+                    color: "hsl(var(--primary))",
+                  },
+                }}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="subject" 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--foreground))' }}
+                    />
+                    <YAxis 
+                      className="text-xs"
+                      tick={{ fill: 'hsl(var(--foreground))' }}
+                      domain={[0, 100]}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="marks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        )}
 
         {terms.length === 0 ? (
           <Card>

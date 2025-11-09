@@ -1,0 +1,201 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import FacultyLayout from "@/components/FacultyLayout";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Bell, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+interface Notice {
+  id: string;
+  title: string;
+  message: string;
+  target_course: string | null;
+  target_year: number | null;
+  target_section: string | null;
+  type: string;
+  created_at: string;
+}
+
+export default function ManageNotices() {
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    target_course: "",
+    target_year: "",
+    target_section: "",
+  });
+
+  useEffect(() => {
+    loadNotices();
+  }, []);
+
+  const loadNotices = async () => {
+    const { data } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("type", "notice")
+      .order("created_at", { ascending: false });
+    
+    if (data) setNotices(data);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase.from("notifications").insert({
+        title: formData.title,
+        message: formData.message,
+        target_course: formData.target_course || null,
+        target_year: formData.target_year ? parseInt(formData.target_year) : null,
+        target_section: formData.target_section || null,
+        type: "notice",
+        created_by: user?.id,
+      });
+
+      if (error) throw error;
+
+      toast.success("Notice posted successfully");
+      setFormData({
+        title: "",
+        message: "",
+        target_course: "",
+        target_year: "",
+        target_section: "",
+      });
+      loadNotices();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await supabase.from("notifications").delete().eq("id", id);
+      toast.success("Notice deleted");
+      loadNotices();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  return (
+    <FacultyLayout>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Notice Board</h1>
+          <p className="text-muted-foreground">Post important notices and announcements for students</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Post New Notice</CardTitle>
+            <CardDescription>Create announcements for specific courses or all students</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <Label>Title</Label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Message</Label>
+                <Textarea
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  rows={4}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Target Course (Optional)</Label>
+                  <Select value={formData.target_course} onValueChange={(v) => setFormData({ ...formData, target_course: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All courses" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Courses</SelectItem>
+                      <SelectItem value="BCA">BCA</SelectItem>
+                      <SelectItem value="MCA">MCA</SelectItem>
+                      <SelectItem value="BTech">BTech</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Target Year (Optional)</Label>
+                  <Select value={formData.target_year} onValueChange={(v) => setFormData({ ...formData, target_year: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Years</SelectItem>
+                      {[1, 2, 3, 4].map((y) => (
+                        <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Target Section (Optional)</Label>
+                  <Input
+                    value={formData.target_section}
+                    onChange={(e) => setFormData({ ...formData, target_section: e.target.value })}
+                    placeholder="All sections"
+                  />
+                </div>
+              </div>
+              <Button type="submit">
+                <Bell className="h-4 w-4 mr-2" />
+                Post Notice
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Notices</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {notices.map((notice) => (
+                <div key={notice.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{notice.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{notice.message}</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Target: {notice.target_course || "All"} 
+                        {notice.target_year && ` Year ${notice.target_year}`}
+                        {notice.target_section && ` (${notice.target_section})`}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {new Date(notice.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(notice.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </FacultyLayout>
+  );
+}

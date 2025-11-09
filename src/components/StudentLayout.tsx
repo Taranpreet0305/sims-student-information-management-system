@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, Users, LogOut } from "lucide-react";
+import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -55,11 +56,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { path: "/student/dashboard", icon: Home, label: "Dashboard" },
     { path: "/student/attendance", icon: Calendar, label: "Attendance" },
     { path: "/student/marks", icon: FileText, label: "Marks" },
+    { path: "/student/study-materials", icon: BookOpen, label: "Study Materials" },
     { path: "/student/feedback", icon: MessageSquare, label: "Feedback" },
     { path: "/student/notice-board", icon: Bell, label: "Notices" },
     { path: "/student/placements", icon: Briefcase, label: "Placements" },
     { path: "/student/voting", icon: Vote, label: "Voting" },
-    { path: "/student/cr-view", icon: Users, label: "Class CR" },
   ];
 
   return (
@@ -71,6 +72,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             <span className="font-bold text-lg hidden sm:inline">Student Portal</span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
             <span className="text-sm text-muted-foreground hidden md:inline">
               {profile?.name}
             </span>

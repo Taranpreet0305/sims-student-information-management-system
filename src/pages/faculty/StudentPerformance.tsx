@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, TrendingUp, TrendingDown, Download } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Download, FileDown } from "lucide-react";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { toast } from "sonner";
+import { generateStudentPerformancePDF } from "@/lib/pdfGenerator";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts";
 
@@ -148,6 +149,29 @@ export default function StudentPerformance() {
     }
   };
 
+  const downloadPDF = () => {
+    if (!selectedStudent) return;
+
+    const reportData = {
+      student_info: {
+        name: selectedStudent.name,
+        enrollment: selectedStudent.enrollment_number,
+        course: selectedStudent.course_name,
+        year: selectedStudent.year,
+        section: selectedStudent.section,
+      },
+      performance: {
+        attendance: selectedStudent.attendance_percentage,
+        average_marks: selectedStudent.average_marks,
+        total_subjects: selectedStudent.total_subjects,
+      },
+      marks_by_subject: selectedStudent.marks_trend,
+      generated_at: new Date().toISOString(),
+    };
+
+    generateStudentPerformancePDF(reportData);
+  };
+
   const filteredStudents = students.filter(
     (s) =>
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -214,10 +238,16 @@ export default function StudentPerformance() {
                           {selectedStudent.enrollment_number} • {selectedStudent.course_name} Year {selectedStudent.year} ({selectedStudent.section})
                         </CardDescription>
                       </div>
-                      <Button onClick={generateReport} size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate Report
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button onClick={generateReport} size="sm" variant="outline">
+                          <Download className="h-4 w-4 mr-2" />
+                          Save Report
+                        </Button>
+                        <Button onClick={downloadPDF} size="sm">
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </Button>
+                      </div>
                     </div>
                   </CardHeader>
                 </Card>

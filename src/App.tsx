@@ -16,7 +16,6 @@ const StudentVoting = lazy(() => import("./pages/student/Voting"));
 const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
 const NoticeBoard = lazy(() => import("./pages/student/NoticeBoard"));
 const StudentFeedback = lazy(() => import("./pages/student/Feedback"));
-const CRView = lazy(() => import("./pages/student/CRView"));
 
 const FacultyDashboard = lazy(() => import("./pages/faculty/Dashboard"));
 const ApproveStudents = lazy(() => import("./pages/faculty/ApproveStudents"));
@@ -30,6 +29,10 @@ const StudentPerformance = lazy(() => import("./pages/faculty/StudentPerformance
 const Analytics = lazy(() => import("./pages/faculty/Analytics"));
 const ManageRoles = lazy(() => import("./pages/faculty/ManageRoles"));
 const Placements = lazy(() => import("./pages/student/Placements"));
+const StudyMaterials = lazy(() => import("./pages/student/StudyMaterials"));
+const FacultyStudyMaterials = lazy(() => import("./pages/faculty/StudyMaterials"));
+const ManageNotices = lazy(() => import("./pages/faculty/ManageNotices"));
+const ManagePlacements = lazy(() => import("./pages/faculty/ManagePlacements"));
 
 const queryClient = new QueryClient();
 
@@ -53,7 +56,8 @@ const App = () => (
             <Route path="/student/notifications" element={<StudentNotifications />} />
             <Route path="/student/notice-board" element={<NoticeBoard />} />
             <Route path="/student/feedback" element={<StudentFeedback />} />
-            <Route path="/student/cr-view" element={<CRView />} />
+            <Route path="/student/placements" element={<Placements />} />
+            <Route path="/student/study-materials" element={<StudyMaterials />} />
             
             {/* Faculty Routes */}
             <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
@@ -61,13 +65,15 @@ const App = () => (
             <Route path="/faculty/add-attendance" element={<ManageAttendance />} />
             <Route path="/faculty/upload-marks" element={<UploadMarks />} />
             <Route path="/faculty/view-feedbacks" element={<ViewFeedback />} />
-        <Route path="/faculty/notifications" element={<FacultyNotifications />} />
-        <Route path="/faculty/manage-elections" element={<ManageElections />} />
-        <Route path="/faculty/approve-faculty" element={<ApproveFaculty />} />
-        <Route path="/faculty/student-performance" element={<StudentPerformance />} />
-        <Route path="/faculty/analytics" element={<Analytics />} />
-        <Route path="/faculty/manage-roles" element={<ManageRoles />} />
-        <Route path="/student/placements" element={<Placements />} />
+            <Route path="/faculty/notifications" element={<FacultyNotifications />} />
+            <Route path="/faculty/manage-elections" element={<ManageElections />} />
+            <Route path="/faculty/approve-faculty" element={<ApproveFaculty />} />
+            <Route path="/faculty/student-performance" element={<StudentPerformance />} />
+            <Route path="/faculty/analytics" element={<Analytics />} />
+            <Route path="/faculty/manage-roles" element={<ManageRoles />} />
+            <Route path="/faculty/study-materials" element={<FacultyStudyMaterials />} />
+            <Route path="/faculty/notices" element={<ManageNotices />} />
+            <Route path="/faculty/placements" element={<ManagePlacements />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

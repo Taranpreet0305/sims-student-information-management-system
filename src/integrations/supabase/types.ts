@@ -304,6 +304,7 @@ export type Database = {
           target_section: string | null
           target_year: number | null
           title: string
+          type: string | null
         }
         Insert: {
           created_at?: string | null
@@ -314,6 +315,7 @@ export type Database = {
           target_section?: string | null
           target_year?: number | null
           title: string
+          type?: string | null
         }
         Update: {
           created_at?: string | null
@@ -324,6 +326,7 @@ export type Database = {
           target_section?: string | null
           target_year?: number | null
           title?: string
+          type?: string | null
         }
         Relationships: []
       }
@@ -519,6 +522,59 @@ export type Database = {
           total_marks?: number | null
         }
         Relationships: []
+      }
+      study_materials: {
+        Row: {
+          course_name: string
+          created_at: string | null
+          description: string | null
+          file_type: string | null
+          file_url: string
+          id: string
+          section: string | null
+          subject: string
+          title: string
+          updated_at: string | null
+          uploaded_by: string | null
+          year: number
+        }
+        Insert: {
+          course_name: string
+          created_at?: string | null
+          description?: string | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          section?: string | null
+          subject: string
+          title: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          year: number
+        }
+        Update: {
+          course_name?: string
+          created_at?: string | null
+          description?: string | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          section?: string | null
+          subject?: string
+          title?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_materials_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "faculty_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
