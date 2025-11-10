@@ -122,12 +122,12 @@ export default function ManageNotices() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Target Course (Optional)</Label>
-                  <Select value={formData.target_course} onValueChange={(v) => setFormData({ ...formData, target_course: v })}>
+                  <Select value={formData.target_course || undefined} onValueChange={(v) => setFormData({ ...formData, target_course: v === "all" ? "" : v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="All courses" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Courses</SelectItem>
+                      <SelectItem value="all">All Courses</SelectItem>
                       <SelectItem value="BCA">BCA</SelectItem>
                       <SelectItem value="MCA">MCA</SelectItem>
                       <SelectItem value="BTech">BTech</SelectItem>
@@ -136,14 +136,14 @@ export default function ManageNotices() {
                 </div>
                 <div>
                   <Label>Target Year (Optional)</Label>
-                  <Select value={formData.target_year} onValueChange={(v) => setFormData({ ...formData, target_year: v })}>
+                  <Select value={formData.target_year || undefined} onValueChange={(v) => setFormData({ ...formData, target_year: v === "all" ? "" : v })}>
                     <SelectTrigger>
                       <SelectValue placeholder="All years" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Years</SelectItem>
+                      <SelectItem value="all">All Years</SelectItem>
                       {[1, 2, 3, 4].map((y) => (
-                        <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                        <SelectItem key={y} value={y.toString()}>Year {y}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -171,27 +171,33 @@ export default function ManageNotices() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {notices.map((notice) => (
-                <div key={notice.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{notice.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-1">{notice.message}</p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Target: {notice.target_course || "All"} 
-                        {notice.target_year && ` Year ${notice.target_year}`}
-                        {notice.target_section && ` (${notice.target_section})`}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(notice.created_at).toLocaleString()}
-                      </p>
+              {notices.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No notices posted yet</p>
+              ) : (
+                notices.map((notice) => (
+                  <div key={notice.id} className="p-4 border rounded-lg">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{notice.title}</h3>
+                        <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{notice.message}</p>
+                        <div className="flex items-center gap-4 mt-3">
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Target:</span> {notice.target_course || "All Courses"} 
+                            {notice.target_year && ` • Year ${notice.target_year}`}
+                            {notice.target_section && ` • Section ${notice.target_section}`}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(notice.created_at).toLocaleDateString()} at {new Date(notice.created_at).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      </div>
+                      <Button variant="destructive" size="sm" onClick={() => handleDelete(notice.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(notice.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

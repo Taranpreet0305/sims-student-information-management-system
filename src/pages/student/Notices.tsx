@@ -37,19 +37,18 @@ export default function Notices() {
     const { data } = await supabase
       .from("notifications")
       .select("*")
-      .or(
-        `target_course.is.null,target_course.eq.${profile.course_name}`
-      )
-      .or(
-        `target_year.is.null,target_year.eq.${profile.year}`
-      )
-      .or(
-        `target_section.is.null,target_section.eq.${profile.section}`
-      )
+      .eq("type", "notice")
       .order("created_at", { ascending: false });
 
     if (data) {
-      setNotices(data);
+      // Filter notices based on targeting
+      const filteredNotices = data.filter((notice) => {
+        const courseMatch = !notice.target_course || notice.target_course === profile.course_name;
+        const yearMatch = !notice.target_year || notice.target_year === profile.year;
+        const sectionMatch = !notice.target_section || notice.target_section === profile.section;
+        return courseMatch && yearMatch && sectionMatch;
+      });
+      setNotices(filteredNotices);
     }
   };
 

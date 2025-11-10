@@ -241,44 +241,86 @@ export default function ManageElections() {
 
                 {election.status === "active" && (
                   <form onSubmit={(e) => handleAddCandidate(election.id, e)} className="border-t pt-4">
-                    <h3 className="font-medium mb-4">Add Candidate</h3>
+                    <h3 className="font-medium mb-4 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Add Candidate
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Input name="name" placeholder="Candidate Name" required />
-                      <Input name="enrollment_number" placeholder="Enrollment Number" required />
-                      <Input name="student_id" placeholder="Student ID" required />
                       <div className="space-y-2">
-                        <select name="position" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                        <Label htmlFor={`name-${election.id}`}>Name</Label>
+                        <Input id={`name-${election.id}`} name="name" placeholder="Candidate Name" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`enrollment-${election.id}`}>Enrollment Number</Label>
+                        <Input id={`enrollment-${election.id}`} name="enrollment_number" placeholder="Enrollment Number" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`student-id-${election.id}`}>Student ID</Label>
+                        <Input id={`student-id-${election.id}`} name="student_id" placeholder="Student ID" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`position-${election.id}`}>Position</Label>
+                        <select 
+                          id={`position-${election.id}`}
+                          name="position" 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
+                          required
+                        >
                           <option value="">Select Position</option>
                           <option value="President">President</option>
                           <option value="Vice President">Vice President</option>
                           <option value="Secretary">Secretary</option>
+                          <option value="Treasurer">Treasurer</option>
                         </select>
                       </div>
-                      <Input name="course_name" placeholder="Course" required />
-                      <Input name="year" type="number" placeholder="Year" required />
-                      <Input name="section" placeholder="Section" required />
-                      <Textarea name="manifesto" placeholder="Manifesto (optional)" className="md:col-span-2" />
+                      <div className="space-y-2">
+                        <Label htmlFor={`course-${election.id}`}>Course</Label>
+                        <Input id={`course-${election.id}`} name="course_name" placeholder="e.g., BCA, MCA" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`year-${election.id}`}>Year</Label>
+                        <Input id={`year-${election.id}`} name="year" type="number" min="1" max="4" placeholder="Year" required />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`section-${election.id}`}>Section</Label>
+                        <Input id={`section-${election.id}`} name="section" placeholder="Section" required />
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor={`manifesto-${election.id}`}>Manifesto (Optional)</Label>
+                        <Textarea id={`manifesto-${election.id}`} name="manifesto" placeholder="Candidate's manifesto and goals..." rows={3} />
+                      </div>
                     </div>
                     <Button type="submit" disabled={loading} className="mt-4">
-                      Add Candidate
+                      <Plus className="h-4 w-4 mr-2" />
+                      {loading ? "Adding..." : "Add Candidate"}
                     </Button>
                   </form>
                 )}
 
                 {election.candidates && election.candidates.length > 0 && (
                   <div className="border-t pt-4">
-                    <h3 className="font-medium mb-4">Candidates List</h3>
+                    <h3 className="font-medium mb-4 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Candidates ({election.candidates.length})
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {election.candidates.map((candidate: any) => (
-                        <Card key={candidate.id}>
+                        <Card key={candidate.id} className="bg-muted/50">
                           <CardHeader>
                             <CardTitle className="text-base">{candidate.name}</CardTitle>
                             <CardDescription>
-                              {candidate.position} • {candidate.course_name} Year {candidate.year}
+                              <Badge variant="outline" className="mt-1">{candidate.position}</Badge>
                             </CardDescription>
                           </CardHeader>
-                          <CardContent className="text-sm text-muted-foreground">
-                            {candidate.manifesto}
+                          <CardContent className="space-y-2">
+                            <p className="text-xs text-muted-foreground">
+                              {candidate.course_name} • Year {candidate.year} • Section {candidate.section}
+                            </p>
+                            <p className="text-xs">Enrollment: {candidate.enrollment_number}</p>
+                            {candidate.manifesto && (
+                              <p className="text-sm mt-2 pt-2 border-t">{candidate.manifesto}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">Votes: {candidate.vote_count || 0}</p>
                           </CardContent>
                         </Card>
                       ))}
