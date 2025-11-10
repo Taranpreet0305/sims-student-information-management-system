@@ -10,13 +10,35 @@ export default function Index() {
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-accent/30 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
+      {/* Animated Background - Light Mode */}
+      <div className="fixed inset-0 -z-10 dark:hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50" />
+        {/* Floating orbs for light mode */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-gradient-to-br from-blue-400/40 to-cyan-400/40 rounded-full mix-blend-multiply filter blur-2xl animate-blob" />
+        <div className="absolute top-40 right-10 w-72 h-72 bg-gradient-to-br from-purple-400/40 to-pink-400/40 rounded-full mix-blend-multiply filter blur-2xl animate-blob animation-delay-2000" />
+        <div className="absolute bottom-20 left-40 w-64 h-64 bg-gradient-to-br from-green-400/30 to-teal-400/30 rounded-full mix-blend-multiply filter blur-2xl animate-blob animation-delay-4000" />
+        <div className="absolute bottom-40 right-20 w-80 h-80 bg-gradient-to-br from-yellow-300/30 to-orange-400/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000" />
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
+        {/* Radial gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-radial from-transparent via-white/50 to-white" />
+      </div>
+
+      {/* Animated Background - Dark Mode */}
+      <div className="fixed inset-0 -z-10 hidden dark:block">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-950 to-violet-950" />
+        {/* Glowing orbs for dark mode */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-br from-blue-600/30 to-cyan-600/30 rounded-full filter blur-3xl animate-blob shadow-2xl shadow-blue-500/50" />
+        <div className="absolute top-40 right-10 w-80 h-80 bg-gradient-to-br from-purple-600/30 to-fuchsia-600/30 rounded-full filter blur-3xl animate-blob animation-delay-2000 shadow-2xl shadow-purple-500/50" />
+        <div className="absolute bottom-20 left-40 w-72 h-72 bg-gradient-to-br from-emerald-600/25 to-teal-600/25 rounded-full filter blur-3xl animate-blob animation-delay-4000 shadow-2xl shadow-emerald-500/50" />
+        <div className="absolute bottom-40 right-20 w-96 h-96 bg-gradient-to-br from-indigo-600/25 to-blue-600/25 rounded-full filter blur-3xl animate-blob animation-delay-2000 shadow-2xl shadow-indigo-500/50" />
+        {/* Subtle stars/dots effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        {/* Animated lines */}
+        <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-blue-500/20 to-transparent animate-pulse" />
+        <div className="absolute top-0 right-1/3 w-px h-full bg-gradient-to-b from-transparent via-purple-500/20 to-transparent animate-pulse animation-delay-2000" />
+        {/* Vignette effect */}
+        <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-slate-950/50" />
       </div>
 
       {/* Header */}
