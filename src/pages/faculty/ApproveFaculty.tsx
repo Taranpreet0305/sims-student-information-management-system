@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, X, AlertCircle, Settings, Mail, Phone, User, Building } from "lucide-react";
+import { UserCheck, X, AlertCircle, Settings, Mail, Phone, User, Building, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,13 @@ export default function ApproveFaculty() {
   const [loading, setLoading] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: async () => {
+      await loadPendingFaculty();
+      toast.success("Refreshed!");
+    },
+  });
 
   useEffect(() => {
     if (isAdmin) {
@@ -140,7 +148,23 @@ export default function ApproveFaculty() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 relative" data-pull-to-refresh>
+        {(pullDistance > 0 || isRefreshing) && (
+          <div 
+            className="pull-to-refresh-indicator"
+            style={{
+              opacity: Math.min(pullDistance / threshold, 1),
+              transform: `translateX(-50%) translateY(${Math.min(pullDistance, threshold)}px)`,
+            }}
+          >
+            <RefreshCw 
+              className={`h-6 w-6 text-primary ${isRefreshing ? 'animate-spin' : ''}`}
+              style={{
+                transform: `rotate(${(pullDistance / threshold) * 360}deg)`,
+              }}
+            />
+          </div>
+        )}
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Approve Faculty</h1>
           <p className="text-sm md:text-base text-muted-foreground">

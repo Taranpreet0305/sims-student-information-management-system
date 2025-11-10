@@ -4,14 +4,22 @@ import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, X, AlertCircle, Mail, User, GraduationCap } from "lucide-react";
+import { UserCheck, X, AlertCircle, Mail, User, GraduationCap, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 export default function ApproveStudents() {
   const { profile, isAdmin, isClassCoordinator, loading: roleLoading } = useFacultyRole();
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: async () => {
+      await loadPendingStudents();
+      toast.success("Refreshed!");
+    },
+  });
 
   useEffect(() => {
     if (profile) {
@@ -105,7 +113,23 @@ export default function ApproveStudents() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 relative" data-pull-to-refresh>
+        {(pullDistance > 0 || isRefreshing) && (
+          <div 
+            className="pull-to-refresh-indicator"
+            style={{
+              opacity: Math.min(pullDistance / threshold, 1),
+              transform: `translateX(-50%) translateY(${Math.min(pullDistance, threshold)}px)`,
+            }}
+          >
+            <RefreshCw 
+              className={`h-6 w-6 text-primary ${isRefreshing ? 'animate-spin' : ''}`}
+              style={{
+                transform: `rotate(${(pullDistance / threshold) * 360}deg)`,
+              }}
+            />
+          </div>
+        )}
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Approve Students</h1>
           <p className="text-sm md:text-base text-muted-foreground">
