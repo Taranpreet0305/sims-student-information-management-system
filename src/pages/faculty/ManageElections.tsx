@@ -246,16 +246,14 @@ export default function ManageElections() {
                       <Input name="name" placeholder="Candidate Name" required />
                       <Input name="enrollment_number" placeholder="Enrollment Number" required />
                       <Input name="student_id" placeholder="Student ID" required />
-                      <Select name="position" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Position" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="President">President</SelectItem>
-                          <SelectItem value="Vice President">Vice President</SelectItem>
-                          <SelectItem value="Secretary">Secretary</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <select name="position" className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" required>
+                          <option value="">Select Position</option>
+                          <option value="President">President</option>
+                          <option value="Vice President">Vice President</option>
+                          <option value="Secretary">Secretary</option>
+                        </select>
+                      </div>
                       <Input name="course_name" placeholder="Course" required />
                       <Input name="year" type="number" placeholder="Year" required />
                       <Input name="section" placeholder="Section" required />

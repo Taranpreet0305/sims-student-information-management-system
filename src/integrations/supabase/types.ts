@@ -576,6 +576,54 @@ export type Database = {
           },
         ]
       }
+      timetables: {
+        Row: {
+          course_name: string
+          created_at: string | null
+          created_by: string | null
+          day_of_week: string
+          end_time: string
+          faculty_name: string | null
+          id: string
+          room_number: string | null
+          section: string
+          start_time: string
+          subject: string
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          course_name: string
+          created_at?: string | null
+          created_by?: string | null
+          day_of_week: string
+          end_time: string
+          faculty_name?: string | null
+          id?: string
+          room_number?: string | null
+          section: string
+          start_time: string
+          subject: string
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          course_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          day_of_week?: string
+          end_time?: string
+          faculty_name?: string | null
+          id?: string
+          room_number?: string | null
+          section?: string
+          start_time?: string
+          subject?: string
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

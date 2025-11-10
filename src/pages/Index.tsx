@@ -2,12 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, BookOpen, Users, Award } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Footer } from "@/components/Footer";
 
 export default function Index() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex flex-col">
       <header className="border-b bg-card/50 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -15,6 +17,7 @@ export default function Index() {
               <GraduationCap className="w-8 h-8 text-primary" />
               <span className="text-2xl font-bold">SIMS</span>
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -97,6 +100,8 @@ export default function Index() {
           </Card>
         </div>
       </main>
+      
+      <Footer />
     </div>
   );
 }

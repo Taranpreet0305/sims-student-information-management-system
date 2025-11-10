@@ -15,7 +15,10 @@ const StudentMarks = lazy(() => import("./pages/student/Marks"));
 const StudentVoting = lazy(() => import("./pages/student/Voting"));
 const StudentNotifications = lazy(() => import("./pages/student/Notifications"));
 const NoticeBoard = lazy(() => import("./pages/student/NoticeBoard"));
+const StudentNotices = lazy(() => import("./pages/student/Notices"));
 const StudentFeedback = lazy(() => import("./pages/student/Feedback"));
+const StudentTimetable = lazy(() => import("./pages/student/Timetable"));
+const StudentEditProfile = lazy(() => import("./pages/student/EditProfile"));
 
 const FacultyDashboard = lazy(() => import("./pages/faculty/Dashboard"));
 const ApproveStudents = lazy(() => import("./pages/faculty/ApproveStudents"));
@@ -34,6 +37,8 @@ const FacultyStudyMaterials = lazy(() => import("./pages/faculty/StudyMaterials"
 const ManageNotices = lazy(() => import("./pages/faculty/ManageNotices"));
 const ManagePlacements = lazy(() => import("./pages/faculty/ManagePlacements"));
 const AdminDashboard = lazy(() => import("./pages/faculty/AdminDashboard"));
+const ManageTimetable = lazy(() => import("./pages/faculty/ManageTimetable"));
+const FacultyEditProfile = lazy(() => import("./pages/faculty/EditProfile"));
 
 const queryClient = new QueryClient();
 
@@ -56,9 +61,12 @@ const App = () => (
             <Route path="/student/voting" element={<StudentVoting />} />
             <Route path="/student/notifications" element={<StudentNotifications />} />
             <Route path="/student/notice-board" element={<NoticeBoard />} />
+            <Route path="/student/notices" element={<StudentNotices />} />
             <Route path="/student/feedback" element={<StudentFeedback />} />
             <Route path="/student/placements" element={<Placements />} />
             <Route path="/student/study-materials" element={<StudyMaterials />} />
+            <Route path="/student/timetable" element={<StudentTimetable />} />
+            <Route path="/student/edit-profile" element={<StudentEditProfile />} />
             
             {/* Faculty Routes */}
             <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
@@ -76,6 +84,8 @@ const App = () => (
             <Route path="/faculty/notices" element={<ManageNotices />} />
             <Route path="/faculty/placements" element={<ManagePlacements />} />
             <Route path="/faculty/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/faculty/timetable" element={<ManageTimetable />} />
+            <Route path="/faculty/edit-profile" element={<FacultyEditProfile />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

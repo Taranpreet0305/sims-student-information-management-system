@@ -48,7 +48,7 @@ export const studentNavItems: NavItem[] = [
   { path: "/student/dashboard", icon: Home, label: "Home" },
   { path: "/student/attendance", icon: Calendar, label: "Attendance" },
   { path: "/student/marks", icon: FileText, label: "Marks" },
-  { path: "/student/notice-board", icon: Bell, label: "Notices" },
+  { path: "/student/notices", icon: Bell, label: "Notices" },
 ];
 
 // Faculty Navigation Items
