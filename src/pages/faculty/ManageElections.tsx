@@ -364,10 +364,10 @@ export default function ManageElections() {
                           required
                         >
                           <option value="">Select Position</option>
-                          <option value="President">President</option>
-                          <option value="Vice President">Vice President</option>
-                          <option value="Secretary">Secretary</option>
-                          <option value="Treasurer">Treasurer</option>
+                          <option value="president">President</option>
+                          <option value="vice_president">Vice President</option>
+                          <option value="secretary">Secretary</option>
+                          <option value="class_representative">Class Representative</option>
                         </select>
                       </div>
                       <div className="space-y-2">
