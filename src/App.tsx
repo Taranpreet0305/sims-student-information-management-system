@@ -39,6 +39,7 @@ const ManagePlacements = lazy(() => import("./pages/faculty/ManagePlacements"));
 const AdminDashboard = lazy(() => import("./pages/faculty/AdminDashboard"));
 const ManageTimetable = lazy(() => import("./pages/faculty/ManageTimetable"));
 const FacultyEditProfile = lazy(() => import("./pages/faculty/EditProfile"));
+const ElectionResults = lazy(() => import("./pages/faculty/ElectionResults"));
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/faculty/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/faculty/timetable" element={<ManageTimetable />} />
             <Route path="/faculty/edit-profile" element={<FacultyEditProfile />} />
+            <Route path="/faculty/election-results" element={<ElectionResults />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

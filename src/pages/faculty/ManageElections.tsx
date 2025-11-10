@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,16 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Vote, Plus, Users, AlertCircle } from "lucide-react";
+import { Vote, Plus, Users, AlertCircle, Trash2, Edit2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function ManageElections() {
   const { isAdmin, isModerator, loading: roleLoading } = useFacultyRole();
   const [loading, setLoading] = useState(false);
   const [elections, setElections] = useState<any[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingCandidate, setEditingCandidate] = useState<any>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadElections();
@@ -61,6 +65,41 @@ export default function ManageElections() {
     setLoading(false);
   };
 
+  const handlePhotoUpload = async (candidateId: string, file: File) => {
+    try {
+      setUploadingPhoto(candidateId);
+      
+      // Upload to storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${candidateId}-${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('candidate-photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('candidate-photos')
+        .getPublicUrl(fileName);
+
+      // Update candidate with photo URL
+      const { error: updateError } = await supabase
+        .from('candidates')
+        .update({ photo_url: publicUrl })
+        .eq('id', candidateId);
+
+      if (updateError) throw updateError;
+
+      toast.success("Photo uploaded successfully!");
+      await loadElections();
+    } catch (error: any) {
+      toast.error("Failed to upload photo: " + error.message);
+    } finally {
+      setUploadingPhoto(null);
+    }
+  };
+
   const handleAddCandidate = async (electionId: string, e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -89,6 +128,64 @@ export default function ManageElections() {
     }
 
     setLoading(false);
+  };
+
+  const handleUpdateCandidate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+
+    const { error } = await supabase
+      .from("candidates")
+      .update({
+        name: formData.get("name") as string,
+        enrollment_number: formData.get("enrollment_number") as string,
+        student_id: formData.get("student_id") as string,
+        position: formData.get("position") as any,
+        course_name: formData.get("course_name") as string,
+        year: parseInt(formData.get("year") as string),
+        section: formData.get("section") as string,
+        manifesto: formData.get("manifesto") as string || null,
+      })
+      .eq("id", editingCandidate.id);
+
+    if (error) {
+      toast.error("Failed to update candidate");
+    } else {
+      toast.success("Candidate updated successfully!");
+      setEditingCandidate(null);
+      await loadElections();
+    }
+
+    setLoading(false);
+  };
+
+  const handleDeleteCandidate = async (candidateId: string, photoUrl: string | null) => {
+    if (!confirm("Are you sure you want to delete this candidate?")) return;
+
+    try {
+      // Delete photo if exists
+      if (photoUrl) {
+        const fileName = photoUrl.split('/').pop();
+        if (fileName) {
+          await supabase.storage.from('candidate-photos').remove([fileName]);
+        }
+      }
+
+      // Delete candidate
+      const { error } = await supabase
+        .from("candidates")
+        .delete()
+        .eq("id", candidateId);
+
+      if (error) throw error;
+
+      toast.success("Candidate deleted successfully!");
+      await loadElections();
+    } catch (error: any) {
+      toast.error("Failed to delete candidate: " + error.message);
+    }
   };
 
   const handleEndElection = async (electionId: string) => {
@@ -305,12 +402,30 @@ export default function ManageElections() {
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {election.candidates.map((candidate: any) => (
-                        <Card key={candidate.id} className="bg-muted/50">
+                        <Card key={candidate.id} className="bg-muted/50 relative">
                           <CardHeader>
-                            <CardTitle className="text-base">{candidate.name}</CardTitle>
-                            <CardDescription>
-                              <Badge variant="outline" className="mt-1">{candidate.position}</Badge>
-                            </CardDescription>
+                            {candidate.photo_url ? (
+                              <div className="flex gap-3">
+                                <img 
+                                  src={candidate.photo_url} 
+                                  alt={candidate.name}
+                                  className="w-16 h-16 rounded-full object-cover"
+                                />
+                                <div className="flex-1">
+                                  <CardTitle className="text-base">{candidate.name}</CardTitle>
+                                  <CardDescription>
+                                    <Badge variant="outline" className="mt-1">{candidate.position}</Badge>
+                                  </CardDescription>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <CardTitle className="text-base">{candidate.name}</CardTitle>
+                                <CardDescription>
+                                  <Badge variant="outline" className="mt-1">{candidate.position}</Badge>
+                                </CardDescription>
+                              </div>
+                            )}
                           </CardHeader>
                           <CardContent className="space-y-2">
                             <p className="text-xs text-muted-foreground">
@@ -318,9 +433,48 @@ export default function ManageElections() {
                             </p>
                             <p className="text-xs">Enrollment: {candidate.enrollment_number}</p>
                             {candidate.manifesto && (
-                              <p className="text-sm mt-2 pt-2 border-t">{candidate.manifesto}</p>
+                              <p className="text-sm mt-2 pt-2 border-t line-clamp-3">{candidate.manifesto}</p>
                             )}
                             <p className="text-xs text-muted-foreground">Votes: {candidate.vote_count || 0}</p>
+                            
+                            {election.status === "active" && (
+                              <div className="flex gap-2 pt-2 border-t">
+                                <input
+                                  type="file"
+                                  ref={fileInputRef}
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) handlePhotoUpload(candidate.id, file);
+                                  }}
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="flex-1"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  disabled={uploadingPhoto === candidate.id}
+                                >
+                                  <Upload className="h-3 w-3 mr-1" />
+                                  {uploadingPhoto === candidate.id ? "Uploading..." : "Photo"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingCandidate(candidate)}
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteCandidate(candidate.id, candidate.photo_url)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       ))}
@@ -341,6 +495,73 @@ export default function ManageElections() {
             </Card>
           )}
         </div>
+
+        {/* Edit Candidate Dialog */}
+        <Dialog open={!!editingCandidate} onOpenChange={(open) => !open && setEditingCandidate(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Candidate</DialogTitle>
+              <DialogDescription>Update candidate information</DialogDescription>
+            </DialogHeader>
+            {editingCandidate && (
+              <form onSubmit={handleUpdateCandidate} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">Name</Label>
+                    <Input id="edit-name" name="name" defaultValue={editingCandidate.name} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-enrollment">Enrollment Number</Label>
+                    <Input id="edit-enrollment" name="enrollment_number" defaultValue={editingCandidate.enrollment_number} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-student-id">Student ID</Label>
+                    <Input id="edit-student-id" name="student_id" defaultValue={editingCandidate.student_id} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-position">Position</Label>
+                    <select 
+                      id="edit-position"
+                      name="position" 
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
+                      defaultValue={editingCandidate.position}
+                      required
+                    >
+                      <option value="President">President</option>
+                      <option value="Vice President">Vice President</option>
+                      <option value="Secretary">Secretary</option>
+                      <option value="Treasurer">Treasurer</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-course">Course</Label>
+                    <Input id="edit-course" name="course_name" defaultValue={editingCandidate.course_name} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-year">Year</Label>
+                    <Input id="edit-year" name="year" type="number" min="1" max="4" defaultValue={editingCandidate.year} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-section">Section</Label>
+                    <Input id="edit-section" name="section" defaultValue={editingCandidate.section} required />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="edit-manifesto">Manifesto</Label>
+                    <Textarea id="edit-manifesto" name="manifesto" defaultValue={editingCandidate.manifesto || ""} rows={3} />
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button type="button" variant="outline" onClick={() => setEditingCandidate(null)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Updating..." : "Update Candidate"}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </FacultyLayout>
   );

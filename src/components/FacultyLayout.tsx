@@ -83,6 +83,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
     { path: "/faculty/placements", icon: Briefcase, label: "Placements" },
     { path: "/faculty/view-feedbacks", icon: MessageSquare, label: "View Feedbacks" },
     { path: "/faculty/manage-elections", icon: Vote, label: "Manage Elections" },
+    { path: "/faculty/election-results", icon: TrendingUp, label: "Election Results" },
     { path: "/faculty/manage-roles", icon: Shield, label: "Manage Roles" },
     { path: "/faculty/edit-profile", icon: User, label: "Edit Profile" },
   ];
@@ -165,7 +166,6 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
         </main>
       </div>
       
-      <MobileNav items={facultyNavItems} />
       <Footer />
     </div>
   );
