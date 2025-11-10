@@ -121,12 +121,13 @@ export default function ManageElections() {
     if (error) {
       console.error("Candidate error:", error);
       toast.error("Failed to add candidate");
-    } else {
-      toast.success("Candidate added successfully!");
-      e.currentTarget.reset();
-      await loadElections();
+      setLoading(false);
+      return;
     }
-
+    
+    toast.success("Candidate added successfully!");
+    e.currentTarget.reset();
+    await loadElections();
     setLoading(false);
   };
 

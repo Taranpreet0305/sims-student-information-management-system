@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { UserCheck, X, AlertCircle, Settings } from "lucide-react";
+import { UserCheck, X, AlertCircle, Settings, Mail, Phone, User, Building } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import {
@@ -25,6 +24,7 @@ export default function ApproveFaculty() {
   const [faculty, setFaculty] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedFaculty, setSelectedFaculty] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isAdmin) {
@@ -90,6 +90,7 @@ export default function ApproveFaculty() {
 
     toast.success("Faculty approved successfully!");
     setSelectedFaculty(null);
+    setDialogOpen(false);
     await loadPendingFaculty();
     setLoading(false);
   };
@@ -141,8 +142,8 @@ export default function ApproveFaculty() {
     <FacultyLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Approve Faculty</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Approve Faculty</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Review and approve pending faculty registrations
           </p>
         </div>
@@ -156,118 +157,134 @@ export default function ApproveFaculty() {
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Pending Approvals ({faculty.length})</CardTitle>
-              <CardDescription>Faculty members waiting for verification</CardDescription>
+              <CardTitle className="text-lg md:text-xl">Pending Approvals ({faculty.length})</CardTitle>
+              <CardDescription className="text-sm">Faculty members waiting for verification</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Faculty ID</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {faculty.map((member) => (
-                      <TableRow key={member.id}>
-                        <TableCell className="font-medium">{member.name}</TableCell>
-                        <TableCell>{member.faculty_id}</TableCell>
-                        <TableCell>{member.email}</TableCell>
-                        <TableCell>
-                          {member.department ? (
-                            <Badge variant="outline">{member.department}</Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>{member.phone || "-"}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  onClick={() => setSelectedFaculty(member)}
-                                >
-                                  <Settings className="h-4 w-4 mr-1" />
-                                  Configure & Approve
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Approve Faculty Member</DialogTitle>
-                                  <DialogDescription>
-                                    Assign role and class coordination responsibilities to {member.name}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <form onSubmit={(e) => handleApprove(member, e)} className="space-y-4">
-                                  <div className="space-y-2">
-                                    <Label htmlFor="role">Role</Label>
-                                    <Select name="role" required>
-                                      <SelectTrigger>
-                                        <SelectValue placeholder="Select role" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="admin">Administrator</SelectItem>
-                                        <SelectItem value="moderator">Moderator</SelectItem>
-                                        <SelectItem value="user">Faculty</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
+              <div className="space-y-4">
+                {faculty.map((member) => (
+                  <Card key={member.id} className="border-2">
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-1 flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                            <p className="font-semibold truncate">{member.name}</p>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Mail className="h-3 w-3 flex-shrink-0" />
+                            <p className="truncate">{member.email}</p>
+                          </div>
+                        </div>
+                      </div>
 
-                                  <div className="space-y-2">
-                                    <Label>Class Coordination (Optional)</Label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                      <Input
-                                        name="assigned_course"
-                                        placeholder="Course"
-                                      />
-                                      <Input
-                                        name="assigned_year"
-                                        type="number"
-                                        placeholder="Year"
-                                        min="1"
-                                        max="6"
-                                      />
-                                      <Input
-                                        name="assigned_section"
-                                        placeholder="Section"
-                                      />
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">
-                                      Leave empty if not assigning class coordination
-                                    </p>
-                                  </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground text-xs">Faculty ID</p>
+                          <p className="font-medium truncate">{member.faculty_id}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground text-xs">Phone</p>
+                          <p className="font-medium truncate">{member.phone || "-"}</p>
+                        </div>
+                      </div>
 
-                                  <div className="flex gap-2">
-                                    <Button type="submit" disabled={loading}>
-                                      <UserCheck className="h-4 w-4 mr-1" />
-                                      {loading ? "Approving..." : "Approve"}
-                                    </Button>
-                                  </div>
-                                </form>
-                              </DialogContent>
-                            </Dialog>
+                      {member.department && (
+                        <div className="flex items-center gap-2">
+                          <Building className="h-3 w-3 text-muted-foreground" />
+                          <Badge variant="outline" className="text-xs">{member.department}</Badge>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-2">
+                        <Dialog open={dialogOpen && selectedFaculty?.id === member.id} onOpenChange={(open) => {
+                          setDialogOpen(open);
+                          if (!open) setSelectedFaculty(null);
+                        }}>
+                          <DialogTrigger asChild>
                             <Button
                               size="sm"
-                              variant="destructive"
-                              onClick={() => handleReject(member.id)}
-                              disabled={loading}
+                              className="flex-1"
+                              onClick={() => {
+                                setSelectedFaculty(member);
+                                setDialogOpen(true);
+                              }}
                             >
-                              <X className="h-4 w-4 mr-1" />
-                              Reject
+                              <Settings className="h-4 w-4 mr-1" />
+                              Configure
                             </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle className="text-lg">Approve Faculty Member</DialogTitle>
+                              <DialogDescription className="text-sm">
+                                Assign role and class coordination to {member.name}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={(e) => handleApprove(member, e)} className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="role" className="text-sm">Role *</Label>
+                                <Select name="role" required>
+                                  <SelectTrigger className="text-sm">
+                                    <SelectValue placeholder="Select role" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="admin">Administrator</SelectItem>
+                                    <SelectItem value="moderator">Moderator</SelectItem>
+                                    <SelectItem value="user">Faculty</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label className="text-sm">Class Coordination (Optional)</Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                  <Input
+                                    name="assigned_course"
+                                    placeholder="Course"
+                                    className="text-sm"
+                                  />
+                                  <Input
+                                    name="assigned_year"
+                                    type="number"
+                                    placeholder="Year"
+                                    min="1"
+                                    max="6"
+                                    className="text-sm"
+                                  />
+                                  <Input
+                                    name="assigned_section"
+                                    placeholder="Section"
+                                    className="text-sm"
+                                  />
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Leave empty if not assigning class coordination
+                                </p>
+                              </div>
+
+                              <div className="flex gap-2">
+                                <Button type="submit" disabled={loading} className="flex-1">
+                                  <UserCheck className="h-4 w-4 mr-1" />
+                                  {loading ? "Approving..." : "Approve"}
+                                </Button>
+                              </div>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleReject(member.id)}
+                          disabled={loading}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
