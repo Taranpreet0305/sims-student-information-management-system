@@ -109,6 +109,13 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     position: relative;
     overflow-x: hidden;
+    font-size: 16px;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      font-size: 14px;
+    }
   }
 
   body::before {
@@ -156,4 +163,18 @@ All colors MUST be HSL.
   padding: 0.5rem;
   transition: opacity 0.2s, transform 0.2s;
   z-index: 50;
+}
+
+/* Mobile optimizations */
+@layer utilities {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  @media (max-width: 640px) {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+  }
 }

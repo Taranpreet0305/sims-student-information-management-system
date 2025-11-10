@@ -15,8 +15,8 @@ export function MobileNav({ items }: MobileNavProps) {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t lg:hidden">
-      <div className="grid grid-cols-4 gap-1 px-2 py-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t lg:hidden safe-area-bottom">
+      <div className="grid grid-cols-4 gap-0.5 px-1 py-1.5">
         {items.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -25,14 +25,14 @@ export function MobileNav({ items }: MobileNavProps) {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-md transition-all ${
                 isActive 
-                  ? "bg-primary text-primary-foreground" 
-                  : "text-muted-foreground hover:bg-muted"
+                  ? "bg-primary text-primary-foreground shadow-sm" 
+                  : "text-muted-foreground hover:bg-muted/50 active:scale-95"
               }`}
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-xs font-medium truncate w-full text-center">
+              <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
+              <span className="text-[10px] sm:text-xs font-medium truncate w-full text-center leading-tight">
                 {item.label}
               </span>
             </Link>

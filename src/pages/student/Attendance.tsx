@@ -80,10 +80,10 @@ export default function StudentAttendance() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Attendance</h1>
-          <p className="text-muted-foreground">View your attendance records</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">Attendance</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">View your attendance records</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

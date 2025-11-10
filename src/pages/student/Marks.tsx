@@ -76,36 +76,36 @@ export default function StudentMarks() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">My Marks</h1>
-          <p className="text-muted-foreground">View your academic performance and grades</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">My Marks</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">View your academic performance and grades</p>
         </div>
 
         {marks.length > 0 && (
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Subjects</CardTitle>
+                <CardTitle className="text-xs sm:text-sm font-medium">Total Subjects</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{marks.length}</div>
+                <div className="text-lg sm:text-2xl font-bold">{marks.length}</div>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Average Marks</CardTitle>
+                <CardTitle className="text-xs sm:text-sm font-medium">Average Marks</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{avgMarks}%</div>
+                <div className="text-lg sm:text-2xl font-bold">{avgMarks}%</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="sm:col-span-2 md:col-span-1">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Credits</CardTitle>
+                <CardTitle className="text-xs sm:text-sm font-medium">Total Credits</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-lg sm:text-2xl font-bold">
                   {marks.reduce((sum, m) => sum + (m.credits || 0), 0)}
                 </div>
               </CardContent>

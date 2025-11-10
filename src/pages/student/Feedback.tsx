@@ -76,10 +76,10 @@ export default function StudentFeedback() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Feedback</h1>
-          <p className="text-muted-foreground">Share your feedback and suggestions</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">Feedback</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Share your feedback and suggestions</p>
         </div>
 
         <Card className="max-w-2xl">

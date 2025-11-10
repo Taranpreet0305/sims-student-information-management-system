@@ -72,7 +72,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container flex h-16 items-center gap-4 px-4">
+        <div className="container flex h-14 sm:h-16 items-center gap-2 sm:gap-4 px-3 sm:px-4">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden">
@@ -104,17 +104,17 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             </SheetContent>
           </Sheet>
           
-          <Link to="/student/dashboard" className="flex items-center gap-2">
-            <GraduationCap className="h-6 w-6 text-primary" />
-            <span className="font-bold text-lg hidden sm:inline">Student Portal</span>
+          <Link to="/student/dashboard" className="flex items-center gap-1.5 sm:gap-2">
+            <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <span className="font-bold text-base sm:text-lg hidden sm:inline">Student Portal</span>
           </Link>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
             <ThemeToggle />
-            <span className="text-sm text-muted-foreground hidden md:inline">
+            <span className="text-xs sm:text-sm text-muted-foreground hidden md:inline truncate max-w-[120px] lg:max-w-none">
               {profile?.name}
             </span>
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10" onClick={handleLogout}>
+              <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </nav>
         </aside>
 
-        <main className="flex-1 p-6 pb-20 lg:pb-6">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-20 lg:pb-6">
           {children}
         </main>
       </div>

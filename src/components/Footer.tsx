@@ -21,29 +21,31 @@ export function Footer() {
 
   return (
     <footer className="border-t bg-card mt-auto">
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col items-center gap-4">
-          <p className="text-sm text-muted-foreground">Developed by</p>
-          <div className="flex flex-wrap justify-center gap-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 mb-16 lg:mb-0">
+        <div className="flex flex-col items-center gap-3 sm:gap-4">
+          <p className="text-xs sm:text-sm text-muted-foreground">Developed by</p>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {developers.map((dev) => (
-              <div key={dev.name} className="flex flex-col items-center gap-2">
-                <p className="text-sm font-medium">{dev.name}</p>
-                <div className="flex gap-2">
+              <div key={dev.name} className="flex flex-col items-center gap-1.5 sm:gap-2">
+                <p className="text-xs sm:text-sm font-medium text-center">{dev.name}</p>
+                <div className="flex gap-1.5 sm:gap-2">
                   <a
                     href={dev.github}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={`${dev.name} GitHub`}
                   >
-                    <Github className="h-4 w-4" />
+                    <Github className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </a>
                   <a
                     href={dev.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={`${dev.name} LinkedIn`}
                   >
-                    <Linkedin className="h-4 w-4" />
+                    <Linkedin className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </a>
                 </div>
               </div>
