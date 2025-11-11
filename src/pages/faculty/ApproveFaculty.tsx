@@ -79,20 +79,29 @@ export default function ApproveFaculty() {
       return;
     }
 
-    // Add role to user_roles table
+    // Add role to user_roles table (check if exists first)
     if (role) {
-      const { error: roleError } = await supabase
+      const { data: existingRole } = await supabase
         .from("user_roles")
-        .insert({
-          user_id: facultyData.id,
-          role: role as any,
-        });
+        .select("id")
+        .eq("user_id", facultyData.id)
+        .eq("role", role as any)
+        .single();
 
-      if (roleError) {
-        console.error("Role error:", roleError);
-        toast.error("Failed to assign role");
-        setLoading(false);
-        return;
+      if (!existingRole) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({
+            user_id: facultyData.id,
+            role: role as any,
+          });
+
+        if (roleError) {
+          console.error("Role error:", roleError);
+          toast.error("Failed to assign role");
+          setLoading(false);
+          return;
+        }
       }
     }
 

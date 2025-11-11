@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, Trash2 } from "lucide-react";
+import { Bell, Trash2, FileText, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
 
 interface Notice {
@@ -19,6 +19,7 @@ interface Notice {
   target_section: string | null;
   type: string;
   created_at: string;
+  attachment_url: string | null;
 }
 
 export default function ManageNotices() {
@@ -30,6 +31,8 @@ export default function ManageNotices() {
     target_year: "",
     target_section: "",
   });
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadNotices();
@@ -47,9 +50,30 @@ export default function ManageNotices() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      let attachmentUrl = null;
+
+      // Upload PDF if provided
+      if (pdfFile) {
+        const fileExt = pdfFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('notice-pdfs')
+          .upload(filePath, pdfFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('notice-pdfs')
+          .getPublicUrl(filePath);
+
+        attachmentUrl = publicUrl;
+      }
       
       const { error } = await supabase.from("notifications").insert({
         title: formData.title,
@@ -59,6 +83,7 @@ export default function ManageNotices() {
         target_section: formData.target_section || null,
         type: "notice",
         created_by: user?.id,
+        attachment_url: attachmentUrl,
       });
 
       if (error) throw error;
@@ -71,9 +96,12 @@ export default function ManageNotices() {
         target_year: "",
         target_section: "",
       });
+      setPdfFile(null);
       loadNotices();
     } catch (error: any) {
       toast.error(error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -119,6 +147,23 @@ export default function ManageNotices() {
                   required
                 />
               </div>
+              <div>
+                <Label>Attach PDF (Optional)</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                    className="flex-1"
+                  />
+                  {pdfFile && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <FileText className="h-4 w-4" />
+                      <span className="truncate max-w-[150px]">{pdfFile.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Target Course (Optional)</Label>
@@ -157,9 +202,18 @@ export default function ManageNotices() {
                   />
                 </div>
               </div>
-              <Button type="submit">
-                <Bell className="h-4 w-4 mr-2" />
-                Post Notice
+              <Button type="submit" disabled={uploading}>
+                {uploading ? (
+                  <>
+                    <Upload className="h-4 w-4 mr-2 animate-pulse" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Bell className="h-4 w-4 mr-2" />
+                    Post Notice
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
@@ -180,7 +234,18 @@ export default function ManageNotices() {
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{notice.title}</h3>
                         <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{notice.message}</p>
-                        <div className="flex items-center gap-4 mt-3">
+                        {notice.attachment_url && (
+                          <a
+                            href={notice.attachment_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 mt-2 text-sm text-primary hover:underline"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download PDF
+                          </a>
+                        )}
+                        <div className="flex items-center gap-4 mt-3 flex-wrap">
                           <p className="text-xs text-muted-foreground">
                             <span className="font-medium">Target:</span> {notice.target_course || "All Courses"} 
                             {notice.target_year && ` • Year ${notice.target_year}`}
