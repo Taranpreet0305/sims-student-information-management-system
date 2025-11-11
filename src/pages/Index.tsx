@@ -3,13 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, BookOpen, Users, Award, TrendingUp, Calendar, Bell, FileText, Sparkles, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/components/ThemeProvider";
+import FloatingParticles from "@/components/FloatingParticles";
 import { Footer } from "@/components/Footer";
 
 export default function Index() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
     <div className="min-h-screen relative flex flex-col overflow-hidden">
+      {/* Floating Particles */}
+      <FloatingParticles count={60} isDark={isDark} />
+
       {/* Animated Background - Light Mode */}
       <div className="fixed inset-0 -z-10 dark:hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50" />

@@ -146,6 +146,7 @@ export type Database = {
           description: string | null
           end_date: string
           id: string
+          result_published: boolean | null
           start_date: string
           status: Database["public"]["Enums"]["election_status"] | null
           title: string
@@ -156,6 +157,7 @@ export type Database = {
           description?: string | null
           end_date: string
           id?: string
+          result_published?: boolean | null
           start_date: string
           status?: Database["public"]["Enums"]["election_status"] | null
           title: string
@@ -166,6 +168,7 @@ export type Database = {
           description?: string | null
           end_date?: string
           id?: string
+          result_published?: boolean | null
           start_date?: string
           status?: Database["public"]["Enums"]["election_status"] | null
           title?: string
@@ -296,6 +299,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          attachment_url: string | null
           created_at: string | null
           created_by: string | null
           id: string
@@ -307,6 +311,7 @@ export type Database = {
           type: string | null
         }
         Insert: {
+          attachment_url?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
@@ -318,6 +323,7 @@ export type Database = {
           type?: string | null
         }
         Update: {
+          attachment_url?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string

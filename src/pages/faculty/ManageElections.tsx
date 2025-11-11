@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Vote, Plus, Users, AlertCircle, Trash2, Edit2, Upload, X } from "lucide-react";
+import { Vote, Plus, Users, AlertCircle, Trash2, Edit2, Upload, X, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
@@ -201,6 +201,23 @@ export default function ManageElections() {
       toast.success("Election ended successfully!");
       await loadElections();
     }
+    setLoading(false);
+  };
+
+  const handlePublishResults = async (electionId: string) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("elections")
+      .update({ result_published: true })
+      .eq("id", electionId);
+
+    if (error) {
+      toast.error("Failed to publish results");
+    } else {
+      toast.success("Results published successfully!");
+      await loadElections();
+    }
+    setLoading(false);
   };
 
   if (roleLoading) {
@@ -328,6 +345,23 @@ export default function ManageElections() {
                       >
                         End Election
                       </Button>
+                    )}
+                    {election.status === "completed" && !election.result_published && (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handlePublishResults(election.id)}
+                        disabled={loading}
+                      >
+                        <Trophy className="h-4 w-4 mr-1" />
+                        Publish Results
+                      </Button>
+                    )}
+                    {election.result_published && (
+                      <Badge variant="outline" className="text-primary">
+                        <Trophy className="h-3 w-3 mr-1" />
+                        Results Published
+                      </Badge>
                     )}
                   </div>
                 </div>
