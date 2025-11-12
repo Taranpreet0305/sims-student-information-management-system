@@ -4,8 +4,8 @@ export function Footer() {
   const developers = [
     {
       name: "Taranpreet Singh",
-      github: "https://github.com/taranpreet",
-      linkedin: "https://linkedin.com/in/taranpreet",
+      github: "https://github.com/Taranpreet0305/",
+      linkedin: "www.linkedin.com/in/taranpreet-singh-a44b8529a",
     },
     {
       name: "Prabhmeet Singh",
@@ -14,7 +14,7 @@ export function Footer() {
     },
     {
       name: "Krishna Khurana",
-      github: "https://github.com/krishna",
+      github: "https://github.com/kr1shnaakhurana",
       linkedin: "https://linkedin.com/in/krishna",
     },
   ];
