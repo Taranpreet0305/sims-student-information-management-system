@@ -126,26 +126,26 @@ export default function ManageRoles() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Role Management</h1>
-            <p className="text-muted-foreground">Assign and manage faculty roles and permissions</p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Role Management</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Assign and manage faculty roles</p>
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button size="sm" className="w-full sm:w-auto">
                 <Shield className="h-4 w-4 mr-2" />
                 Assign Role
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Assign Faculty Role</DialogTitle>
+                <DialogTitle className="text-lg">Assign Faculty Role</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label>Select Faculty</Label>
+                  <Label className="text-sm">Select Faculty</Label>
                   <Select
                     value={selectedFaculty?.id || ""}
                     onValueChange={(value) => {
@@ -153,11 +153,11 @@ export default function ManageRoles() {
                       setSelectedFaculty(f);
                     }}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Choose faculty member" />
                     </SelectTrigger>
                     <SelectContent>
-                      {faculty.map((f) => (
+                      {faculty.filter(f => f.verify).map((f) => (
                         <SelectItem key={f.id} value={f.id}>
                           {f.name} ({f.faculty_id})
                         </SelectItem>
@@ -166,9 +166,9 @@ export default function ManageRoles() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Select Role</Label>
+                  <Label className="text-sm">Select Role</Label>
                   <Select value={newRole} onValueChange={setNewRole}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm">
                       <SelectValue placeholder="Choose role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -178,12 +178,13 @@ export default function ManageRoles() {
                       <SelectItem value="director">Director</SelectItem>
                       <SelectItem value="chairman">Chairman</SelectItem>
                       <SelectItem value="placement_coordinator">Placement Coordinator</SelectItem>
-                      <SelectItem value="moderator">Moderator</SelectItem>
+                      <SelectItem value="associate_professor">Associate Professor</SelectItem>
+                      <SelectItem value="assistant_professor">Assistant Professor</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <Button onClick={assignRole} disabled={loading} className="w-full">
-                  Assign Role
+                  {loading ? "Assigning..." : "Assign Role"}
                 </Button>
               </div>
             </DialogContent>
@@ -191,12 +192,55 @@ export default function ManageRoles() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Faculty Members & Roles</CardTitle>
-            <CardDescription>Manage roles and permissions for all faculty members</CardDescription>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg md:text-xl">Faculty Members & Roles</CardTitle>
+            <CardDescription className="text-sm">Manage roles for verified faculty</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
+          <CardContent className="p-0 md:p-6">
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3 p-4">
+              {faculty.filter(f => f.verify).map((f) => (
+                <Card key={f.id} className="border">
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold truncate">{f.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{f.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="outline" className="text-xs">{f.faculty_id}</Badge>
+                      {f.department && <Badge variant="outline" className="text-xs">{f.department}</Badge>}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {f.user_roles && f.user_roles.length > 0 ? (
+                        f.user_roles.map((ur: any, idx: number) => (
+                          <Badge key={idx} variant="secondary" className="text-xs">
+                            {ur.role.replace(/_/g, ' ')}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="outline" className="text-xs">No roles</Badge>
+                      )}
+                    </div>
+                    {f.user_roles && f.user_roles.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-xs"
+                        onClick={() => removeRole(f.id, f.user_roles[0].role)}
+                        disabled={loading}
+                      >
+                        Remove Role
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -209,22 +253,22 @@ export default function ManageRoles() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {faculty.map((f) => (
+                  {faculty.filter(f => f.verify).map((f) => (
                     <TableRow key={f.id}>
                       <TableCell className="font-medium">{f.name}</TableCell>
                       <TableCell>{f.faculty_id}</TableCell>
                       <TableCell>{f.email}</TableCell>
                       <TableCell>{f.department || "N/A"}</TableCell>
                       <TableCell>
-                        <div className="flex gap-2 flex-wrap">
+                        <div className="flex gap-1 flex-wrap">
                           {f.user_roles && f.user_roles.length > 0 ? (
                             f.user_roles.map((ur: any, idx: number) => (
-                              <Badge key={idx} variant="secondary">
-                                {ur.role}
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {ur.role.replace(/_/g, ' ')}
                               </Badge>
                             ))
                           ) : (
-                            <Badge variant="outline">No roles</Badge>
+                            <Badge variant="outline" className="text-xs">No roles</Badge>
                           )}
                         </div>
                       </TableCell>
@@ -236,7 +280,7 @@ export default function ManageRoles() {
                             onClick={() => removeRole(f.id, f.user_roles[0].role)}
                             disabled={loading}
                           >
-                            Remove Role
+                            Remove
                           </Button>
                         )}
                       </TableCell>

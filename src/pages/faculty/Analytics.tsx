@@ -111,17 +111,17 @@ export default function Analytics() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
-            <p className="text-muted-foreground">
-              Comprehensive performance trends and grade distributions
+            <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Analytics Dashboard</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Performance trends and grade distributions
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[150px] text-sm">
                 <SelectValue placeholder="Select term" />
               </SelectTrigger>
               <SelectContent>
@@ -130,27 +130,27 @@ export default function Analytics() {
                 <SelectItem value="End-Term">End-Term</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={exportReport} size="sm">
+            <Button onClick={exportReport} size="sm" className="w-full sm:w-auto">
               <Download className="h-4 w-4 mr-2" />
-              Export Report
+              Export
             </Button>
           </div>
         </div>
 
         {loading ? (
           <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Loading analytics...</p>
+            <CardContent className="py-8 md:py-12 text-center">
+              <p className="text-muted-foreground text-sm">Loading analytics...</p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Grade Distribution</CardTitle>
-                <CardDescription>Student performance by grade</CardDescription>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-base md:text-lg">Grade Distribution</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Student performance by grade</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 md:p-6 pt-0">
                 {gradeDistribution.length > 0 ? (
                   <ChartContainer
                     config={{
@@ -159,7 +159,7 @@ export default function Analytics() {
                         color: "hsl(var(--primary))",
                       },
                     }}
-                    className="h-[300px]"
+                    className="h-[250px] md:h-[300px] w-full"
                   >
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -169,30 +169,31 @@ export default function Analytics() {
                           nameKey="grade"
                           cx="50%"
                           cy="50%"
-                          outerRadius={80}
-                          label
+                          outerRadius={60}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          labelLine={false}
                         >
                           {gradeDistribution.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Legend />
+                        <Legend wrapperStyle={{ fontSize: '12px' }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <p className="text-center py-12 text-muted-foreground">No data available</p>
+                  <p className="text-center py-8 md:py-12 text-muted-foreground text-sm">No data available</p>
                 )}
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle>Subject Performance</CardTitle>
-                <CardDescription>Average marks by subject</CardDescription>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-base md:text-lg">Subject Performance</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Average marks by subject</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 md:p-6 pt-0">
                 {performanceTrends.length > 0 ? (
                   <ChartContainer
                     config={{
@@ -201,20 +202,23 @@ export default function Analytics() {
                         color: "hsl(var(--primary))",
                       },
                     }}
-                    className="h-[300px]"
+                    className="h-[250px] md:h-[300px] w-full"
                   >
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceTrends}>
+                      <BarChart data={performanceTrends} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis 
                           dataKey="subject" 
-                          className="text-xs"
-                          tick={{ fill: 'hsl(var(--foreground))' }}
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                          interval={0}
                         />
                         <YAxis 
-                          className="text-xs"
-                          tick={{ fill: 'hsl(var(--foreground))' }}
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
                           domain={[0, 100]}
+                          width={30}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="average" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -222,7 +226,7 @@ export default function Analytics() {
                     </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <p className="text-center py-12 text-muted-foreground">No data available</p>
+                  <p className="text-center py-8 md:py-12 text-muted-foreground text-sm">No data available</p>
                 )}
               </CardContent>
             </Card>
