@@ -54,15 +54,27 @@ export default function ManagePlacements() {
   };
 
   const loadApplications = async () => {
-    const { data } = await supabase
+    // Get all applications with placement info
+    const { data: appsData } = await supabase
       .from("placement_applications")
-      .select(`
-        *,
-        profiles:enrollment_number (name, course_name, year, section)
-      `)
+      .select(`*, placements(title, company_name)`)
       .order("applied_at", { ascending: false });
     
-    if (data) setApplications(data);
+    if (appsData) {
+      // Fetch student profiles separately
+      const enrollments = [...new Set(appsData.map(a => a.enrollment_number))];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("enrollment_number, name, course_name, year, section")
+        .in("enrollment_number", enrollments);
+      
+      // Merge data
+      const merged = appsData.map(app => ({
+        ...app,
+        profile: profilesData?.find(p => p.enrollment_number === app.enrollment_number)
+      }));
+      setApplications(merged);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -245,32 +257,40 @@ export default function ManagePlacements() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Student Applications
+              Student Applications ({applications.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Enrollment</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Applied Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {applications.map((app) => (
-                  <TableRow key={app.id}>
-                    <TableCell>{app.profiles?.name}</TableCell>
-                    <TableCell>{app.enrollment_number}</TableCell>
-                    <TableCell>
-                      {app.profiles?.course_name} Year {app.profiles?.year} ({app.profiles?.section})
-                    </TableCell>
-                    <TableCell>{new Date(app.applied_at).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {applications.length === 0 ? (
+              <p className="text-center text-muted-foreground py-4">No applications yet</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student Name</TableHead>
+                      <TableHead>Enrollment</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead>Position Applied</TableHead>
+                      <TableHead>Applied Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {applications.map((app) => (
+                      <TableRow key={app.id}>
+                        <TableCell className="font-medium">{app.profile?.name || "N/A"}</TableCell>
+                        <TableCell>{app.enrollment_number}</TableCell>
+                        <TableCell>
+                          {app.profile?.course_name} Year {app.profile?.year} ({app.profile?.section})
+                        </TableCell>
+                        <TableCell>{app.placements?.title} - {app.placements?.company_name}</TableCell>
+                        <TableCell>{new Date(app.applied_at).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

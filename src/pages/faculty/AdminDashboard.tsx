@@ -233,65 +233,65 @@ export default function AdminDashboard() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">System-wide statistics and recent activities</p>
+          <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Admin Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">System-wide statistics and recent activities</p>
         </div>
 
         {/* Quick Actions */}
         <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+          <CardHeader className="p-4 md:p-6">
+            <CardTitle className="text-base md:text-lg">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Button asChild variant="outline">
-                <Link to="/faculty/approve-students">
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Approve Students
+          <CardContent className="p-4 md:p-6 pt-0">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/approve-students" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <UserCheck className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Approve Students</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/approve-faculty">
-                  <Users className="h-4 w-4 mr-2" />
-                  Approve Faculty
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/approve-faculty" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Approve Faculty</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/notices">
-                  <Bell className="h-4 w-4 mr-2" />
-                  Post Notice
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/notices" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Bell className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Post Notice</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/placements">
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Manage Placements
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/placements" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Placements</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/manage-elections">
-                  <Vote className="h-4 w-4 mr-2" />
-                  Elections
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/manage-elections" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Vote className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Elections</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/manage-roles">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Manage Roles
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/manage-roles" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Manage Roles</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/analytics">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Analytics
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/analytics" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Analytics</span>
                 </Link>
               </Button>
-              <Button asChild variant="outline">
-                <Link to="/faculty/student-performance">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Performance
+              <Button asChild variant="outline" size="sm" className="h-auto py-2 px-3">
+                <Link to="/faculty/student-performance" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Activity className="h-4 w-4" />
+                  <span className="text-xs sm:text-sm">Performance</span>
                 </Link>
               </Button>
             </div>
@@ -299,113 +299,113 @@ export default function AdminDashboard() {
         </Card>
 
         {/* System Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Total Students</CardTitle>
+              <Users className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : stats.totalStudents}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.verifiedStudents} verified, {stats.pendingStudents} pending
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : stats.totalStudents}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                {stats.verifiedStudents} verified
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Faculty</CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Total Faculty</CardTitle>
+              <UserCheck className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : stats.totalFaculty}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : stats.totalFaculty}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
                 {stats.verifiedFaculty} verified
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Placements</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Placements</CardTitle>
+              <Briefcase className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : stats.totalPlacements}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.activePlacements} active drives
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : stats.totalPlacements}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
+                {stats.activePlacements} active
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Elections</CardTitle>
-              <Vote className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Elections</CardTitle>
+              <Vote className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : stats.totalElections}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : stats.totalElections}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
                 {stats.activeElections} ongoing
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Attendance</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Attendance</CardTitle>
+              <Calendar className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : `${stats.averageAttendance}%`}</div>
-              <p className="text-xs text-muted-foreground mt-1">System-wide average</p>
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : `${stats.averageAttendance}%`}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Average</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Feedback</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Feedback</CardTitle>
+              <FileText className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : stats.totalFeedback}</div>
-              <p className="text-xs text-muted-foreground mt-1">From students</p>
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : stats.totalFeedback}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Total</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Notifications</CardTitle>
-              <Bell className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Notices</CardTitle>
+              <Bell className="h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{loading ? "..." : stats.totalNotifications}</div>
-              <p className="text-xs text-muted-foreground mt-1">Total notices posted</p>
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold">{loading ? "..." : stats.totalNotifications}</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Posted</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">System Health</CardTitle>
-              <Activity className="h-4 w-4 text-green-500" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-4">
+              <CardTitle className="text-xs md:text-sm font-medium">Status</CardTitle>
+              <Activity className="h-3 w-3 md:h-4 md:w-4 text-green-500" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-500">Active</div>
-              <p className="text-xs text-muted-foreground mt-1">All systems operational</p>
+            <CardContent className="p-3 md:p-4 pt-0">
+              <div className="text-xl md:text-2xl font-bold text-green-500">Active</div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-1">Operational</p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Course Distribution */}
           {courseDistribution.length > 0 && (
             <Card>
-              <CardHeader>
-                <CardTitle>Student Distribution by Course</CardTitle>
-                <CardDescription>Number of verified students per course</CardDescription>
+              <CardHeader className="p-4 md:p-6">
+                <CardTitle className="text-base md:text-lg">Student Distribution</CardTitle>
+                <CardDescription className="text-xs md:text-sm">Verified students per course</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 md:p-6 pt-0">
                 <ChartContainer
                   config={{
                     students: {
@@ -413,19 +413,22 @@ export default function AdminDashboard() {
                       color: "hsl(var(--primary))",
                     },
                   }}
-                  className="h-[300px]"
+                  className="h-[200px] md:h-[300px] w-full"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={courseDistribution}>
+                    <BarChart data={courseDistribution} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
                         dataKey="course" 
-                        className="text-xs"
-                        tick={{ fill: 'hsl(var(--foreground))' }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        angle={-45}
+                        textAnchor="end"
+                        height={50}
+                        interval={0}
                       />
                       <YAxis 
-                        className="text-xs"
-                        tick={{ fill: 'hsl(var(--foreground))' }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        width={25}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="students" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -438,21 +441,21 @@ export default function AdminDashboard() {
 
           {/* Recent Activities */}
           <Card>
-            <CardHeader>
-              <CardTitle>Recent Activities</CardTitle>
-              <CardDescription>Latest system events and updates</CardDescription>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-base md:text-lg">Recent Activities</CardTitle>
+              <CardDescription className="text-xs md:text-sm">Latest system events</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="p-4 md:p-6 pt-0">
+              <div className="space-y-2 md:space-y-3 max-h-[300px] overflow-y-auto">
                 {recentActivities.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No recent activities</p>
+                  <p className="text-xs md:text-sm text-muted-foreground text-center py-4">No recent activities</p>
                 ) : (
                   recentActivities.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 border rounded-lg">
-                      <Activity className="h-5 w-5 text-primary mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{activity.description}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                    <div key={activity.id} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 border rounded-lg">
+                      <Activity className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs md:text-sm font-medium truncate">{activity.description}</p>
+                        <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5">
                           {new Date(activity.timestamp).toLocaleString()}
                         </p>
                       </div>

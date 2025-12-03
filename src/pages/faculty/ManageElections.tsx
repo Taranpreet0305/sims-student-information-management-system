@@ -247,13 +247,13 @@ export default function ManageElections() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 md:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Manage Elections</h1>
-            <p className="text-muted-foreground">Create and manage student elections</p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Manage Elections</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Create and manage student elections</p>
           </div>
-          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+          <Button onClick={() => setShowCreateForm(!showCreateForm)} className="w-full sm:w-auto" size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Create Election
           </Button>
@@ -261,58 +261,62 @@ export default function ManageElections() {
 
         {showCreateForm && (
           <Card>
-            <CardHeader>
-              <CardTitle>Create New Election</CardTitle>
-              <CardDescription>Set up a new student election</CardDescription>
+            <CardHeader className="p-4 md:p-6">
+              <CardTitle className="text-lg md:text-xl">Create New Election</CardTitle>
+              <CardDescription className="text-sm">Set up a new student election</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 md:p-6 pt-0">
               <form onSubmit={handleCreateElection} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Election Title</Label>
+                  <Label htmlFor="title" className="text-sm">Election Title</Label>
                   <Input
                     id="title"
                     name="title"
                     placeholder="e.g., Student Council Elections 2024"
                     required
+                    className="text-sm"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-sm">Description</Label>
                   <Textarea
                     id="description"
                     name="description"
                     placeholder="Election description..."
                     rows={3}
+                    className="text-sm"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date</Label>
+                    <Label htmlFor="start_date" className="text-sm">Start Date</Label>
                     <Input
                       id="start_date"
                       name="start_date"
                       type="datetime-local"
                       required
+                      className="text-sm"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="end_date">End Date</Label>
+                    <Label htmlFor="end_date" className="text-sm">End Date</Label>
                     <Input
                       id="end_date"
                       name="end_date"
                       type="datetime-local"
                       required
+                      className="text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={loading}>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button type="submit" disabled={loading} className="text-sm">
                     {loading ? "Creating..." : "Create Election"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)}>
+                  <Button type="button" variant="outline" onClick={() => setShowCreateForm(false)} className="text-sm">
                     Cancel
                   </Button>
                 </div>
@@ -324,17 +328,17 @@ export default function ManageElections() {
         <div className="space-y-4">
           {elections.map((election) => (
             <Card key={election.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Vote className="h-5 w-5" />
-                      {election.title}
+              <CardHeader className="p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                      <Vote className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+                      <span className="truncate">{election.title}</span>
                     </CardTitle>
-                    <CardDescription className="mt-2">{election.description}</CardDescription>
+                    <CardDescription className="mt-1 md:mt-2 text-sm">{election.description}</CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={election.status === "active" ? "default" : "secondary"}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={election.status === "active" ? "default" : "secondary"} className="text-xs">
                       {election.status}
                     </Badge>
                     {election.status === "active" && (
@@ -342,8 +346,9 @@ export default function ManageElections() {
                         size="sm"
                         variant="destructive"
                         onClick={() => handleEndElection(election.id)}
+                        className="text-xs h-7"
                       >
-                        End Election
+                        End
                       </Button>
                     )}
                     {election.status === "completed" && !election.result_published && (
@@ -352,50 +357,51 @@ export default function ManageElections() {
                         variant="default"
                         onClick={() => handlePublishResults(election.id)}
                         disabled={loading}
+                        className="text-xs h-7"
                       >
-                        <Trophy className="h-4 w-4 mr-1" />
-                        Publish Results
+                        <Trophy className="h-3 w-3 mr-1" />
+                        Publish
                       </Button>
                     )}
                     {election.result_published && (
-                      <Badge variant="outline" className="text-primary">
+                      <Badge variant="outline" className="text-primary text-xs">
                         <Trophy className="h-3 w-3 mr-1" />
-                        Results Published
+                        Published
                       </Badge>
                     )}
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-muted-foreground">
+              <CardContent className="space-y-4 p-4 md:p-6 pt-0">
+                <div className="text-xs md:text-sm text-muted-foreground">
                   Candidates: {election.candidates?.length || 0}
                 </div>
 
                 {election.status === "active" && (
                   <form onSubmit={(e) => handleAddCandidate(election.id, e)} className="border-t pt-4">
-                    <h3 className="font-medium mb-4 flex items-center gap-2">
+                    <h3 className="font-medium mb-4 flex items-center gap-2 text-sm md:text-base">
                       <Users className="h-4 w-4" />
                       Add Candidate
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor={`name-${election.id}`}>Name</Label>
-                        <Input id={`name-${election.id}`} name="name" placeholder="Candidate Name" required />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                      <div className="space-y-1">
+                        <Label htmlFor={`name-${election.id}`} className="text-xs md:text-sm">Name</Label>
+                        <Input id={`name-${election.id}`} name="name" placeholder="Candidate Name" required className="text-sm" />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`enrollment-${election.id}`}>Enrollment Number</Label>
-                        <Input id={`enrollment-${election.id}`} name="enrollment_number" placeholder="Enrollment Number" required />
+                      <div className="space-y-1">
+                        <Label htmlFor={`enrollment-${election.id}`} className="text-xs md:text-sm">Enrollment Number</Label>
+                        <Input id={`enrollment-${election.id}`} name="enrollment_number" placeholder="Enrollment Number" required className="text-sm" />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`student-id-${election.id}`}>Student ID</Label>
-                        <Input id={`student-id-${election.id}`} name="student_id" placeholder="Student ID" required />
+                      <div className="space-y-1">
+                        <Label htmlFor={`student-id-${election.id}`} className="text-xs md:text-sm">Student ID</Label>
+                        <Input id={`student-id-${election.id}`} name="student_id" placeholder="Student ID" required className="text-sm" />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`position-${election.id}`}>Position</Label>
+                      <div className="space-y-1">
+                        <Label htmlFor={`position-${election.id}`} className="text-xs md:text-sm">Position</Label>
                         <select 
                           id={`position-${election.id}`}
                           name="position" 
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
+                          className="flex h-9 md:h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
                           required
                         >
                           <option value="">Select Position</option>
