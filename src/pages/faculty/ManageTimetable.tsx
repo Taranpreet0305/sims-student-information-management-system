@@ -113,17 +113,17 @@ export default function ManageTimetable() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Manage Timetable</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">Manage Timetable</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               {profile && isClassCoordinator && !isAdmin
                 ? `${profile.assigned_course} - Year ${profile.assigned_year} - Section ${profile.assigned_section}`
                 : "Manage all timetables"}
             </p>
           </div>
-          <Button onClick={() => setShowForm(!showForm)}>
+          <Button onClick={() => setShowForm(!showForm)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Entry
           </Button>
@@ -131,25 +131,26 @@ export default function ManageTimetable() {
 
         {showForm && (
           <Card>
-            <CardHeader>
-              <CardTitle>Add Timetable Entry</CardTitle>
-              <CardDescription>Create a new class schedule entry</CardDescription>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Add Timetable Entry</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Create a new class schedule entry</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="course_name">Course</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="course_name" className="text-xs sm:text-sm">Course</Label>
                     <Input
                       id="course_name"
                       name="course_name"
                       defaultValue={isClassCoordinator && !isAdmin ? profile?.assigned_course : ""}
                       readOnly={isClassCoordinator && !isAdmin}
                       required
+                      className="text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="year">Year</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="year" className="text-xs sm:text-sm">Year</Label>
                     <Input
                       id="year"
                       name="year"
@@ -157,25 +158,27 @@ export default function ManageTimetable() {
                       defaultValue={isClassCoordinator && !isAdmin ? profile?.assigned_year : ""}
                       readOnly={isClassCoordinator && !isAdmin}
                       required
+                      className="text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="section">Section</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="section" className="text-xs sm:text-sm">Section</Label>
                     <Input
                       id="section"
                       name="section"
                       defaultValue={isClassCoordinator && !isAdmin ? profile?.assigned_section : ""}
                       readOnly={isClassCoordinator && !isAdmin}
                       required
+                      className="text-sm"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="day_of_week">Day</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="day_of_week" className="text-xs sm:text-sm">Day</Label>
                     <Select name="day_of_week" required>
-                      <SelectTrigger>
+                      <SelectTrigger className="text-sm">
                         <SelectValue placeholder="Select day" />
                       </SelectTrigger>
                       <SelectContent>
@@ -187,39 +190,39 @@ export default function ManageTimetable() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input id="subject" name="subject" required />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="subject" className="text-xs sm:text-sm">Subject</Label>
+                    <Input id="subject" name="subject" required className="text-sm" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="start_time">Start Time</Label>
-                    <Input id="start_time" name="start_time" type="time" required />
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="start_time" className="text-xs sm:text-sm">Start Time</Label>
+                    <Input id="start_time" name="start_time" type="time" required className="text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="end_time">End Time</Label>
-                    <Input id="end_time" name="end_time" type="time" required />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="faculty_name">Faculty Name</Label>
-                    <Input id="faculty_name" name="faculty_name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="room_number">Room Number</Label>
-                    <Input id="room_number" name="room_number" />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="end_time" className="text-xs sm:text-sm">End Time</Label>
+                    <Input id="end_time" name="end_time" type="time" required className="text-sm" />
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={loading}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="faculty_name" className="text-xs sm:text-sm">Faculty Name</Label>
+                    <Input id="faculty_name" name="faculty_name" className="text-sm" />
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="room_number" className="text-xs sm:text-sm">Room Number</Label>
+                    <Input id="room_number" name="room_number" className="text-sm" />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                     {loading ? "Adding..." : "Add Entry"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                  <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
                     Cancel
                   </Button>
                 </div>
@@ -228,44 +231,44 @@ export default function ManageTimetable() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {daysOfWeek.map((day) => {
             const daySchedule = timetable.filter((entry) => entry.day_of_week === day);
             return (
               <Card key={day}>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
+                <CardHeader className="p-3 sm:p-4 lg:p-6">
+                  <CardTitle className="text-sm sm:text-base lg:text-lg flex items-center gap-2">
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
                     {day}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
                   {daySchedule.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No classes scheduled</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">No classes scheduled</p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2 sm:space-y-3">
                       {daySchedule.map((entry) => (
-                        <div key={entry.id} className="p-3 rounded-lg bg-muted/50 space-y-1 relative group">
+                        <div key={entry.id} className="p-2 sm:p-3 rounded-lg bg-muted/50 space-y-1 relative group">
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute top-1 right-1 sm:top-2 sm:right-2 h-5 w-5 sm:h-6 sm:w-6 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                             onClick={() => handleDelete(entry.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
-                          <div className="text-sm font-medium">
+                          <div className="text-[10px] sm:text-xs font-medium text-primary">
                             {entry.start_time} - {entry.end_time}
                           </div>
-                          <p className="text-sm font-semibold">{entry.subject}</p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs sm:text-sm font-semibold pr-6">{entry.subject}</p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground">
                             {entry.course_name} Y{entry.year} - {entry.section}
                           </p>
                           {entry.faculty_name && (
-                            <p className="text-xs text-muted-foreground">{entry.faculty_name}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">{entry.faculty_name}</p>
                           )}
                           {entry.room_number && (
-                            <p className="text-xs text-muted-foreground">Room: {entry.room_number}</p>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground">Room: {entry.room_number}</p>
                           )}
                         </div>
                       ))}
