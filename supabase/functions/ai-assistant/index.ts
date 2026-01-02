@@ -46,14 +46,16 @@ Be encouraging and specific. Keep the analysis under 250 words.`;
         break;
 
       case 'generate_notice':
-        systemPrompt = `You are a professional academic notice writer. Generate a formal notice based on the given topic. Include:
-- Clear subject line
-- Well-structured content
-- Professional tone
-- Relevant details
+        systemPrompt = `You are a professional academic notice writer. Generate a formal notice based on the given topic. 
+Format:
+- Start with a clear, concise subject line (max 10 words)
+- Write well-structured, professional content
+- Use formal tone appropriate for educational institution
+- Include relevant details like dates, instructions if applicable
+- Keep the notice clear and actionable
 
-Keep it concise and formal.`;
-        userMessage = `Generate a notice about: ${data.topic}`;
+Respond with the subject line on the first line, then the body.`;
+        userMessage = `Generate a professional notice about: ${data.topic}`;
         break;
 
       case 'election_analysis':
@@ -68,14 +70,27 @@ Be factual and objective. Keep it under 150 words.`;
         break;
 
       case 'attendance_insights':
-        systemPrompt = `You are an attendance analytics assistant. Analyze the attendance data and provide:
-1. Overall attendance trends
-2. Students at risk (below 75%)
-3. Improvement suggestions
-4. Pattern analysis
+        systemPrompt = `You are an attendance analytics assistant for an educational institution. Analyze the attendance data and provide:
+1. Overall attendance health assessment
+2. Risk analysis for students below 75% attendance
+3. Specific actionable recommendations for faculty
+4. Trends and patterns observed
 
-Be helpful and actionable. Keep it under 200 words.`;
+Be helpful, specific, and actionable. Keep it under 200 words. Format with clear sections.`;
         userMessage = `Attendance Data:\n${JSON.stringify(data.attendance, null, 2)}`;
+        break;
+
+      case 'chat':
+        systemPrompt = `You are a helpful campus assistant chatbot for college students. You help with:
+- Attendance queries and policies
+- Academic performance guidance
+- Campus activities and events
+- Placement information
+- General academic advice
+
+Be friendly, helpful, and concise. Keep responses under 100 words unless more detail is needed.
+If asked about specific personal data (marks, attendance percentage), explain that you can provide general guidance but they should check their portal for exact figures.`;
+        userMessage = data.message || 'Hello';
         break;
 
       default:
