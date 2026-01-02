@@ -1,16 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Download, UserPlus, FileText } from "lucide-react";
+import { Upload, Download, UserPlus, FileText, Sparkles, Loader2, AlertTriangle, TrendingDown, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+
+interface AttendanceRecord {
+  enrollment_number: string;
+  student_id: string;
+  total_classes: number;
+  classes_attended: number;
+  percentage: number;
+}
+
+interface AIInsight {
+  atRiskStudents: AttendanceRecord[];
+  summary: string;
+  recommendations: string[];
+}
 
 export default function ManageAttendance() {
   const { profile, isAdmin, isClassCoordinator } = useFacultyRole();
@@ -21,6 +36,103 @@ export default function ManageAttendance() {
     subject: "",
     status: "",
   });
+  const [aiInsight, setAiInsight] = useState<AIInsight | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
+
+  useEffect(() => {
+    loadAttendanceData();
+  }, [profile, isAdmin, isClassCoordinator]);
+
+  const loadAttendanceData = async () => {
+    try {
+      let query = supabase.from("attendance").select("*");
+
+      if (!isAdmin && isClassCoordinator && profile) {
+        const { data: students } = await supabase
+          .from("profiles")
+          .select("enrollment_number")
+          .eq("course_name", profile.assigned_course)
+          .eq("year", profile.assigned_year)
+          .eq("section", profile.assigned_section);
+
+        if (students && students.length > 0) {
+          const enrollmentNumbers = students.map(s => s.enrollment_number);
+          query = query.in("enrollment_number", enrollmentNumbers);
+        }
+      }
+
+      const { data } = await query;
+
+      if (data) {
+        // Aggregate attendance by student
+        const aggregated: Record<string, AttendanceRecord> = {};
+        data.forEach((record: any) => {
+          if (!aggregated[record.enrollment_number]) {
+            aggregated[record.enrollment_number] = {
+              enrollment_number: record.enrollment_number,
+              student_id: record.student_id,
+              total_classes: 0,
+              classes_attended: 0,
+              percentage: 0
+            };
+          }
+          aggregated[record.enrollment_number].total_classes += record.total_classes || 0;
+          aggregated[record.enrollment_number].classes_attended += record.classes_attended || 0;
+        });
+
+        const records = Object.values(aggregated).map(r => ({
+          ...r,
+          percentage: r.total_classes > 0 ? (r.classes_attended / r.total_classes) * 100 : 0
+        }));
+
+        setAttendanceData(records);
+      }
+    } catch (error) {
+      console.error("Error loading attendance:", error);
+    }
+  };
+
+  const generateAIInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const atRiskStudents = attendanceData.filter(s => s.percentage < 75);
+      
+      const { data, error } = await supabase.functions.invoke("ai-assistant", {
+        body: {
+          action: "attendance_insights",
+          data: { 
+            attendance: {
+              totalStudents: attendanceData.length,
+              atRiskCount: atRiskStudents.length,
+              averageAttendance: attendanceData.length > 0 
+                ? (attendanceData.reduce((sum, s) => sum + s.percentage, 0) / attendanceData.length).toFixed(1)
+                : 0,
+              atRiskStudents: atRiskStudents.slice(0, 10).map(s => ({
+                id: s.student_id,
+                percentage: s.percentage.toFixed(1)
+              }))
+            }
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      setAiInsight({
+        atRiskStudents,
+        summary: data.response || "No insights available",
+        recommendations: []
+      });
+
+      toast.success("AI insights generated!");
+    } catch (error) {
+      console.error("AI insights error:", error);
+      toast.error("Failed to generate insights");
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
 
   const exportToCSV = async () => {
     try {
@@ -40,15 +152,15 @@ export default function ManageAttendance() {
         }
       }
 
-      const { data: attendanceData } = await query.order("date", { ascending: false });
+      const { data: attendanceRecords } = await query.order("date", { ascending: false });
 
-      if (!attendanceData || attendanceData.length === 0) {
+      if (!attendanceRecords || attendanceRecords.length === 0) {
         toast.error("No attendance data to export");
         return;
       }
 
       const headers = ["Enrollment Number", "Student ID", "Subject", "Date", "Total Classes", "Classes Attended", "Percentage"];
-      const rows = attendanceData.map((record: any) => [
+      const rows = attendanceRecords.map((record: any) => [
         record.enrollment_number,
         record.student_id,
         record.subject,
@@ -124,6 +236,7 @@ export default function ManageAttendance() {
         subject: "",
         status: "",
       });
+      loadAttendanceData();
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -168,6 +281,7 @@ export default function ManageAttendance() {
         toast.success(`${records.length} attendance records uploaded successfully!`);
         e.currentTarget.reset();
         setCsvData("");
+        loadAttendanceData();
       }
     } catch (error) {
       toast.error("Error parsing CSV file");
@@ -182,11 +296,85 @@ export default function ManageAttendance() {
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Manage Attendance</h1>
             <p className="text-sm md:text-base text-muted-foreground">Upload and export attendance records</p>
           </div>
-          <Button onClick={exportToCSV} variant="outline" size="sm" className="w-full md:w-auto">
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={generateAIInsights} disabled={loadingInsights} variant="outline" size="sm">
+              {loadingInsights ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-2" />
+              )}
+              AI Insights
+            </Button>
+            <Button onClick={exportToCSV} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
+
+        {/* AI Insights Panel */}
+        {aiInsight && (
+          <Card className="border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">AI Attendance Insights</CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setAiInsight(null)}>×</Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="flex items-center gap-3 p-3 bg-background rounded-lg">
+                  <Users className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="text-2xl font-bold">{attendanceData.length}</p>
+                    <p className="text-xs text-muted-foreground">Total Students</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-background rounded-lg">
+                  <AlertTriangle className="h-8 w-8 text-destructive" />
+                  <div>
+                    <p className="text-2xl font-bold">{aiInsight.atRiskStudents.length}</p>
+                    <p className="text-xs text-muted-foreground">At Risk (&lt;75%)</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-background rounded-lg">
+                  <TrendingDown className="h-8 w-8 text-accent" />
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {attendanceData.length > 0 
+                        ? (attendanceData.reduce((sum, s) => sum + s.percentage, 0) / attendanceData.length).toFixed(1)
+                        : 0}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">Average Attendance</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-background rounded-lg">
+                <p className="text-sm whitespace-pre-wrap">{aiInsight.summary}</p>
+              </div>
+
+              {aiInsight.atRiskStudents.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2 text-sm">Students Needing Attention:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {aiInsight.atRiskStudents.slice(0, 10).map(student => (
+                      <Badge key={student.enrollment_number} variant="destructive" className="text-xs">
+                        {student.student_id} ({student.percentage.toFixed(1)}%)
+                      </Badge>
+                    ))}
+                    {aiInsight.atRiskStudents.length > 10 && (
+                      <Badge variant="outline">+{aiInsight.atRiskStudents.length - 10} more</Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="single" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -272,33 +460,17 @@ export default function ManageAttendance() {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        name="date"
-                        type="date"
-                        required
-                      />
+                      <Input id="date" name="date" type="date" required />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="subject">Subject</Label>
-                      <Input
-                        id="subject"
-                        name="subject"
-                        placeholder="e.g., Mathematics"
-                        required
-                      />
+                      <Input id="subject" name="subject" placeholder="e.g., Mathematics" required />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="csv">CSV File</Label>
-                      <Input
-                        id="csv"
-                        type="file"
-                        accept=".csv"
-                        onChange={handleFileUpload}
-                        required
-                      />
+                      <Input id="csv" type="file" accept=".csv" onChange={handleFileUpload} required />
                       <p className="text-xs text-muted-foreground">
                         Upload a CSV file with columns: enrollment_number, student_id, status, total_classes, classes_attended
                       </p>
@@ -355,8 +527,8 @@ EN2024003,STU003,Present,20,20`}
                     </pre>
                   </div>
 
-                  <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded">
-                    <p className="text-xs md:text-sm text-blue-900 dark:text-blue-100">
+                  <div className="bg-primary/10 p-3 rounded">
+                    <p className="text-xs md:text-sm text-primary">
                       <strong>Tip:</strong> Export your attendance data from Excel or Google Sheets as CSV format.
                     </p>
                   </div>

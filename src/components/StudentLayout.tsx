@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileNav, studentNavItems } from "@/components/MobileNav";
 import { Footer } from "@/components/Footer";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AIChatbot } from "@/components/AIChatbot";
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -147,6 +148,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       </div>
       
       <Footer />
+      <AIChatbot />
     </div>
   );
 }
