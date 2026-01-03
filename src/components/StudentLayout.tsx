@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen, User, Clock, Menu } from "lucide-react";
+import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen, User, Clock, Menu, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileNav, studentNavItems } from "@/components/MobileNav";
@@ -10,6 +10,8 @@ import { Footer } from "@/components/Footer";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AIChatbot } from "@/components/AIChatbot";
 import { StudentNotificationBell } from "@/components/StudentNotificationBell";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,7 +56,12 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <AnimatedBackground />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const navItems = [
@@ -71,8 +78,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+    <div className="min-h-screen flex flex-col relative">
+      <AnimatedBackground />
+      <header className="sticky top-0 z-50 w-full border-b bg-card/90 backdrop-blur-xl supports-[backdrop-filter]:bg-card/70">
         <div className="container flex h-14 sm:h-16 items-center gap-2 sm:gap-4 px-3 sm:px-4">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
@@ -130,8 +138,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         </div>
       </header>
 
-      <div className="flex flex-1">
-        <aside className="w-64 border-r bg-card min-h-[calc(100vh-4rem)] hidden lg:block">
+      <div className="flex flex-1 relative z-10">
+        <aside className="w-64 border-r bg-card/80 backdrop-blur-sm min-h-[calc(100vh-4rem)] hidden lg:block">
           <nav className="flex flex-col gap-1 p-4">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -140,7 +148,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 <Link key={item.path} to={item.path}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
-                    className="w-full justify-start"
+                    className={`w-full justify-start transition-all ${isActive ? 'bg-primary/10 text-primary shadow-sm' : 'hover:bg-muted/50'}`}
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     {item.label}
@@ -151,7 +159,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </nav>
         </aside>
 
-        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-20 lg:pb-6">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-8 lg:pb-6">
           {children}
         </main>
       </div>

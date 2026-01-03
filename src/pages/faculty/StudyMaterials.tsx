@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Trash2, Download } from "lucide-react";
+import { Upload, FileText, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PDFPreview } from "@/components/PDFPreview";
+import { Badge } from "@/components/ui/badge";
 
 interface StudyMaterial {
   id: string;
@@ -207,36 +209,52 @@ export default function StudyMaterials() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="modern-card">
           <CardHeader>
             <CardTitle>Uploaded Materials</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {materials.map((material) => (
-                <div key={material.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium">{material.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {material.subject} • {material.course_name} Year {material.year}
-                        {material.section && ` (${material.section})`}
-                      </p>
+            <div className="space-y-3">
+              {materials.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No materials uploaded yet</p>
+              ) : (
+                materials.map((material) => (
+                  <div key={material.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border rounded-xl bg-card/50 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium truncate">{material.title}</p>
+                          <Badge variant="secondary" className="text-xs">
+                            {material.file_type?.toUpperCase() || 'FILE'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {material.subject} • {material.course_name} Year {material.year}
+                          {material.section && ` (${material.section})`}
+                        </p>
+                        {material.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{material.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <PDFPreview url={material.file_url} title={material.title} />
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => handleDelete(material.id, material.file_url)}
+                        className="gap-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="hidden sm:inline">Delete</span>
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={material.file_url} download target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(material.id, material.file_url)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

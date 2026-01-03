@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Eye, EyeOff, BookOpen } from "lucide-react";
+import { Eye, EyeOff, BookOpen, Loader2 } from "lucide-react";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+import FloatingParticles from "@/components/FloatingParticles";
+import { useTheme } from "@/components/ThemeProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const signUpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -32,6 +36,32 @@ export default function FacultyAuth() {
   const [showPassword, setShowPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const { theme } = useTheme();
+  const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("faculty_profiles")
+          .select("verify")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        if (profile?.verify) {
+          localStorage.setItem("user_type", "faculty");
+          navigate("/faculty/dashboard");
+          return;
+        }
+      }
+      setCheckingSession(false);
+    };
+
+    checkSession();
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -154,16 +184,34 @@ export default function FacultyAuth() {
     setLoading(false);
   };
 
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <AnimatedBackground />
+        <FloatingParticles count={40} isDark={isDark} />
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-accent/10 via-background to-primary/10 p-4">
-      <Card className="w-full max-w-md bg-card/70 backdrop-blur-md border-2">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      <AnimatedBackground />
+      <FloatingParticles count={40} isDark={isDark} />
+      
+      {/* Theme toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
+      <Card className="w-full max-w-md bg-card/80 backdrop-blur-xl border-2 shadow-2xl relative z-10">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
-              <BookOpen className="w-6 h-6 text-accent-foreground" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center shadow-lg">
+              <BookOpen className="w-7 h-7 text-accent-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Faculty Portal</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Faculty Portal</CardTitle>
           <CardDescription className="text-center">
             {isLogin ? "Sign in to your account" : "Create a new faculty account"}
           </CardDescription>
