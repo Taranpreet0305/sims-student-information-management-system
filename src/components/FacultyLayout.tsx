@@ -98,12 +98,15 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <div className="flex items-center gap-2 p-4 border-b">
-                <BookOpen className="h-6 w-6 text-accent" />
-                <span className="font-bold text-lg">Faculty Portal</span>
+            <SheetContent side="left" className="w-72 p-0">
+              <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-transparent">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-6 w-6 text-primary" />
+                  <span className="font-bold text-lg">Faculty Portal</span>
+                </div>
+                <ThemeToggle />
               </div>
-              <nav className="flex flex-col gap-1 p-4">
+              <nav className="flex flex-col gap-0.5 p-3 overflow-y-auto max-h-[calc(100vh-80px)]">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -111,7 +114,8 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                     <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}>
                       <Button
                         variant={isActive ? "secondary" : "ghost"}
-                        className="w-full justify-start"
+                        className={`w-full justify-start h-10 ${isActive ? 'bg-primary/10 text-primary' : ''}`}
+                        size="sm"
                       >
                         <Icon className="mr-2 h-4 w-4" />
                         {item.label}
@@ -128,7 +132,9 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
             <span className="font-bold text-base sm:text-lg hidden sm:inline">Faculty Portal</span>
           </Link>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <ThemeToggle />
+            <div className="hidden lg:block">
+              <ThemeToggle />
+            </div>
             {profile && <NotificationBell facultyId={profile.id} />}
             <span className="text-xs sm:text-sm text-muted-foreground hidden md:inline truncate max-w-[120px] lg:max-w-none">
               {profile?.name}

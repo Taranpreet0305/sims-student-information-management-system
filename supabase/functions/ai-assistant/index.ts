@@ -80,6 +80,31 @@ Be helpful, specific, and actionable. Keep it under 200 words. Format with clear
         userMessage = `Attendance Data:\n${JSON.stringify(data.attendance, null, 2)}`;
         break;
 
+      case 'study_recommendations':
+        systemPrompt = `You are an AI study coach for college students. Based on their academic performance data, provide:
+
+**Focus Areas:**
+- Identify 2-3 weak subjects that need immediate attention
+- Explain why these need focus (based on marks)
+
+**Study Strategies:**
+- Specific techniques for each weak subject
+- Time allocation suggestions (e.g., "Spend 30 mins daily on Mathematics")
+
+**Strengths to Leverage:**
+- Mention their strong subjects as motivation
+- Suggest how to maintain good performance
+
+**Weekly Study Plan:**
+- Provide a simple 5-day study schedule
+- Include revision tips
+
+Keep the response encouraging, practical, and under 300 words. Use bullet points and clear sections.`;
+        userMessage = `Student Performance Data:
+Marks: ${JSON.stringify(data.marks, null, 2)}
+Attendance: ${JSON.stringify(data.attendance || [], null, 2)}`;
+        break;
+
       case 'chat':
         systemPrompt = `You are a helpful campus assistant chatbot for college students. You help with:
 - Attendance queries and policies

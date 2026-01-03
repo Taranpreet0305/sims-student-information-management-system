@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen, User, Clock, Menu, X } from "lucide-react";
+import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen, User, Clock, Menu } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileNav, studentNavItems } from "@/components/MobileNav";
 import { Footer } from "@/components/Footer";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AIChatbot } from "@/components/AIChatbot";
-
+import { StudentNotificationBell } from "@/components/StudentNotificationBell";
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -80,12 +80,15 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0">
-              <div className="flex items-center gap-2 p-4 border-b">
-                <GraduationCap className="h-6 w-6 text-primary" />
-                <span className="font-bold text-lg">Student Portal</span>
+            <SheetContent side="left" className="w-72 p-0">
+              <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-transparent">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                  <span className="font-bold text-lg">Student Portal</span>
+                </div>
+                <ThemeToggle />
               </div>
-              <nav className="flex flex-col gap-1 p-4">
+              <nav className="flex flex-col gap-0.5 p-3 overflow-y-auto max-h-[calc(100vh-80px)]">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
@@ -93,7 +96,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                     <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}>
                       <Button
                         variant={isActive ? "secondary" : "ghost"}
-                        className="w-full justify-start"
+                        className={`w-full justify-start h-10 ${isActive ? 'bg-primary/10 text-primary' : ''}`}
+                        size="sm"
                       >
                         <Icon className="mr-2 h-4 w-4" />
                         {item.label}
@@ -110,7 +114,12 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             <span className="font-bold text-base sm:text-lg hidden sm:inline">Student Portal</span>
           </Link>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <ThemeToggle />
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
+            {profile?.enrollment_number && (
+              <StudentNotificationBell enrollmentNumber={profile.enrollment_number} />
+            )}
             <span className="text-xs sm:text-sm text-muted-foreground hidden md:inline truncate max-w-[120px] lg:max-w-none">
               {profile?.name}
             </span>
