@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
-import { FileText, Award } from "lucide-react";
+import { FileText, Award, TrendingUp, Target } from "lucide-react";
+import { AIStudyRecommendations } from "@/components/AIStudyRecommendations";
 
 export default function StudentMarks() {
   const [marks, setMarks] = useState<any[]>([]);
+  const [attendance, setAttendance] = useState<any[]>([]);
   const [terms, setTerms] = useState<string[]>([]);
   const [enrollment, setEnrollment] = useState<string>("");
 
@@ -19,8 +21,19 @@ export default function StudentMarks() {
   useEffect(() => {
     if (enrollment) {
       loadMarks();
+      loadAttendance();
     }
   }, [enrollment]);
+
+  const loadAttendance = async () => {
+    const { data } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("enrollment_number", enrollment);
+    if (data) {
+      setAttendance(data);
+    }
+  };
 
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -111,6 +124,11 @@ export default function StudentMarks() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* AI Study Recommendations */}
+        {marks.length > 0 && (
+          <AIStudyRecommendations marks={marks} attendance={attendance} />
         )}
 
         {marks.length > 0 && (

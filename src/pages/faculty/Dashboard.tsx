@@ -2,17 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { User, Mail, Phone, Building, BookOpen, Users, UserCheck, Clock, TrendingUp } from "lucide-react";
+import { User, Mail, Phone, Building, BookOpen, Users, UserCheck, Clock, TrendingUp, Activity, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
 interface DashboardStats {
   totalStudents: number;
   pendingApprovals: number;
   averageAttendance: number;
   attendanceBySubject: { subject: string; percentage: number }[];
+  gradeDistribution: { grade: string; count: number; fill: string }[];
+  recentActivity: { date: string; count: number }[];
 }
 
 interface ClassRepresentative {
@@ -32,9 +34,13 @@ export default function FacultyDashboard() {
     pendingApprovals: 0,
     averageAttendance: 0,
     attendanceBySubject: [],
+    gradeDistribution: [],
+    recentActivity: [],
   });
   const [classReps, setClassReps] = useState<ClassRepresentative[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
+
+  const GRADE_COLORS = ['#22c55e', '#84cc16', '#eab308', '#f97316', '#ef4444', '#6b7280'];
 
   useEffect(() => {
     if (profile) {
@@ -141,11 +147,53 @@ export default function FacultyDashboard() {
         percentage: data.total > 0 ? (data.attended / data.total) * 100 : 0,
       }));
 
+      // Get grade distribution from marks
+      const { data: marksData } = await supabase.from("student_marks").select("grade");
+      const gradeCount: Record<string, number> = {};
+      (marksData || []).forEach(m => {
+        const grade = m.grade || 'N/A';
+        gradeCount[grade] = (gradeCount[grade] || 0) + 1;
+      });
+      const gradeOrder = ['A+', 'A', 'B+', 'B', 'C', 'F', 'N/A'];
+      const gradeDistribution = gradeOrder
+        .filter(g => gradeCount[g])
+        .map((grade, i) => ({
+          grade,
+          count: gradeCount[grade],
+          fill: GRADE_COLORS[i % GRADE_COLORS.length],
+        }));
+
+      // Get recent registrations (last 7 days)
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().split('T')[0];
+      });
+      const { data: recentStudents } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .gte("created_at", last7Days[0]);
+      
+      const activityByDate: Record<string, number> = {};
+      last7Days.forEach(d => activityByDate[d] = 0);
+      (recentStudents || []).forEach(s => {
+        const date = s.created_at?.split('T')[0];
+        if (date && activityByDate[date] !== undefined) {
+          activityByDate[date]++;
+        }
+      });
+      const recentActivity = last7Days.map(date => ({
+        date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+        count: activityByDate[date],
+      }));
+
       setStats({
         totalStudents: totalStudents || 0,
         pendingApprovals: pendingApprovals || 0,
         averageAttendance: Math.round(averageAttendance),
         attendanceBySubject,
+        gradeDistribution,
+        recentActivity,
       });
     } catch (error) {
       console.error("Error loading dashboard stats:", error);
@@ -260,6 +308,100 @@ export default function FacultyDashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* Real-time Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Grade Distribution Pie Chart */}
+          {stats.gradeDistribution.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Grade Distribution
+                </CardTitle>
+                <CardDescription>Overall grade breakdown</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    count: {
+                      label: "Students",
+                      color: "hsl(var(--primary))",
+                    },
+                  }}
+                  className="h-[250px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stats.gradeDistribution}
+                        dataKey="count"
+                        nameKey="grade"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label={({ grade, count }) => `${grade}: ${count}`}
+                      >
+                        {stats.gradeDistribution.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Recent Activity Line Chart */}
+          {stats.recentActivity.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Registration Trend
+                </CardTitle>
+                <CardDescription>New student registrations (last 7 days)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer
+                  config={{
+                    count: {
+                      label: "Registrations",
+                      color: "hsl(var(--primary))",
+                    },
+                  }}
+                  className="h-[250px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={stats.recentActivity}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="date" 
+                        className="text-xs"
+                        tick={{ fill: 'hsl(var(--foreground))' }}
+                      />
+                      <YAxis 
+                        className="text-xs"
+                        tick={{ fill: 'hsl(var(--foreground))' }}
+                        allowDecimals={false}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="count" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2}
+                        dot={{ fill: 'hsl(var(--primary))' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {profile.department && (

@@ -202,6 +202,10 @@ All colors MUST be HSL.
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
   
   @media (max-width: 640px) {
     .container {
@@ -250,5 +254,39 @@ All colors MUST be HSL.
   .card-hover:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 30px hsl(var(--primary) / 0.1);
+  }
+
+  /* Modern card styles */
+  .modern-card {
+    @apply rounded-xl border bg-card/80 backdrop-blur-sm shadow-sm transition-all duration-200;
+  }
+
+  .modern-card:hover {
+    @apply shadow-md border-primary/20;
+  }
+
+  /* Smooth pulse animation */
+  @keyframes smooth-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .animate-smooth-pulse {
+    animation: smooth-pulse 2s ease-in-out infinite;
+  }
+
+  /* Glow effect */
+  .glow {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  /* Bottom nav styles */
+  .bottom-nav-item {
+    @apply flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-xl transition-all;
+  }
+
+  .bottom-nav-item-active {
+    @apply bg-primary text-primary-foreground shadow-lg;
+    transform: scale(1.05);
   }
 }
