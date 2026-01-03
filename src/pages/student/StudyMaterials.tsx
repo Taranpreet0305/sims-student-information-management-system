@@ -4,7 +4,9 @@ import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FileText, Download, Search } from "lucide-react";
+import { FileText, Download, Search, Eye, ExternalLink } from "lucide-react";
+import { PDFPreview } from "@/components/PDFPreview";
+import { Badge } from "@/components/ui/badge";
 
 interface StudyMaterial {
   id: string;
@@ -63,12 +65,18 @@ export default function StudyMaterials() {
       m.subject.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const getFileType = (url: string, fileType: string | null): string => {
+    if (fileType) return fileType.toUpperCase();
+    const ext = url.split('.').pop()?.toLowerCase();
+    return ext?.toUpperCase() || 'FILE';
+  };
+
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-1">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Study Materials</h1>
-          <p className="text-muted-foreground">Access course materials, notes, and resources</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Study Materials</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Access course materials, notes, and resources</p>
         </div>
 
         <div className="relative">
@@ -81,35 +89,46 @@ export default function StudyMaterials() {
           />
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filteredMaterials.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                <p className="text-muted-foreground">No study materials available yet</p>
+            <Card className="modern-card">
+              <CardContent className="py-8 sm:py-12 text-center">
+                <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-sm sm:text-base text-muted-foreground">No study materials available yet</p>
               </CardContent>
             </Card>
           ) : (
             filteredMaterials.map((material) => (
-              <Card key={material.id}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <FileText className="h-5 w-5 text-primary mt-1" />
-                      <div>
-                        <CardTitle className="text-lg">{material.title}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">{material.subject}</p>
+              <Card key={material.id} className="modern-card card-hover">
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                        <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <CardTitle className="text-base sm:text-lg truncate">{material.title}</CardTitle>
+                          <Badge variant="secondary" className="text-xs">
+                            {getFileType(material.file_url, material.file_type)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs sm:text-sm text-primary font-medium mt-0.5">{material.subject}</p>
                         {material.description && (
-                          <p className="text-sm text-muted-foreground mt-2">{material.description}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2 line-clamp-2">{material.description}</p>
                         )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(material.created_at).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-                    <Button asChild>
-                      <a href={material.file_url} download target="_blank" rel="noopener noreferrer">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </a>
-                    </Button>
+                    <div className="flex gap-2 sm:flex-shrink-0 w-full sm:w-auto">
+                      <PDFPreview 
+                        url={material.file_url} 
+                        title={material.title}
+                        className="flex-1 sm:flex-none"
+                      />
+                    </div>
                   </div>
                 </CardHeader>
               </Card>
