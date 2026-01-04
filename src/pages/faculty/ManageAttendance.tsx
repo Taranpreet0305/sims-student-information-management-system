@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 interface AttendanceRecord {
   enrollment_number: string;
@@ -44,7 +46,7 @@ export default function ManageAttendance() {
     loadAttendanceData();
   }, [profile, isAdmin, isClassCoordinator]);
 
-  const loadAttendanceData = async () => {
+  const loadAttendanceData = useCallback(async () => {
     try {
       let query = supabase.from("attendance").select("*");
 
@@ -91,7 +93,11 @@ export default function ManageAttendance() {
     } catch (error) {
       console.error("Error loading attendance:", error);
     }
-  };
+  }, [isAdmin, isClassCoordinator, profile]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadAttendanceData,
+  });
 
   const generateAIInsights = async () => {
     setLoadingInsights(true);
@@ -290,7 +296,12 @@ export default function ManageAttendance() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-6" data-pull-to-refresh>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Manage Attendance</h1>

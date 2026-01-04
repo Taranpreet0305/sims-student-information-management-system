@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Upload, FileText, Award, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function UploadMarks() {
   const [loading, setLoading] = useState(false);
@@ -22,6 +24,26 @@ export default function UploadMarks() {
     total_marks: "",
     grade: "",
     credits: "",
+  });
+
+  const handleRefresh = useCallback(async () => {
+    // Reset form state on refresh
+    setCsvData("");
+    setSingleStudentData({
+      enrollment_number: "",
+      term: "",
+      subject: "",
+      internal_marks: "",
+      external_marks: "",
+      total_marks: "",
+      grade: "",
+      credits: "",
+    });
+    toast.success("Form reset");
+  }, []);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: handleRefresh,
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +160,12 @@ export default function UploadMarks() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-6" data-pull-to-refresh>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Upload Marks</h1>
           <p className="text-sm md:text-base text-muted-foreground">Upload student marks and grades</p>

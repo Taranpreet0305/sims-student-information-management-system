@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { Star, MessageSquare, Sparkles, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { toast } from "sonner";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function ViewFeedback() {
   const { profile, isAdmin } = useFacultyRole();
@@ -21,7 +23,7 @@ export default function ViewFeedback() {
     }
   }, [profile]);
 
-  const loadFeedback = async () => {
+  const loadFeedback = useCallback(async () => {
     if (!profile) return;
 
     let query = supabase
@@ -38,7 +40,11 @@ export default function ViewFeedback() {
     if (data) {
       setFeedback(data);
     }
-  };
+  }, [profile, isAdmin]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadFeedback,
+  });
 
   const generateAISummary = async () => {
     if (feedback.length === 0) {
@@ -82,7 +88,12 @@ export default function ViewFeedback() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-4 sm:space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-4 sm:space-y-6" data-pull-to-refresh>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">Student Feedback</h1>
