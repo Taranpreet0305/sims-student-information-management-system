@@ -103,6 +103,13 @@ All colors MUST be HSL.
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+  }
+
+  /* Prevent horizontal overflow globally */
+  html {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   /* Theme transition */
@@ -120,10 +127,17 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
     position: relative;
     overflow-x: hidden;
+    max-width: 100vw;
     font-size: 16px;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+    min-height: 100vh;
   }
 
   @media (max-width: 640px) {
