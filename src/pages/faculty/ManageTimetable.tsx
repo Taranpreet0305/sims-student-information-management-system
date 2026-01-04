@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Clock, Plus, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function ManageTimetable() {
   const { profile, isAdmin, isClassCoordinator, loading: roleLoading } = useFacultyRole();
@@ -24,7 +26,7 @@ export default function ManageTimetable() {
     }
   }, [profile]);
 
-  const loadTimetable = async () => {
+  const loadTimetable = useCallback(async () => {
     if (!profile) return;
 
     let query = supabase.from("timetables").select("*");
@@ -41,7 +43,11 @@ export default function ManageTimetable() {
     if (data) {
       setTimetable(data);
     }
-  };
+  }, [profile, isAdmin, isClassCoordinator]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadTimetable,
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -113,7 +119,12 @@ export default function ManageTimetable() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-4 sm:space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-4 sm:space-y-6" data-pull-to-refresh>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">Manage Timetable</h1>

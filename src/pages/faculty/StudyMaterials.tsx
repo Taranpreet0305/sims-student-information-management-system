@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PDFPreview } from "@/components/PDFPreview";
 import { Badge } from "@/components/ui/badge";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 interface StudyMaterial {
   id: string;
@@ -43,14 +45,18 @@ export default function StudyMaterials() {
     loadMaterials();
   }, []);
 
-  const loadMaterials = async () => {
+  const loadMaterials = useCallback(async () => {
     const { data } = await supabase
       .from("study_materials")
       .select("*")
       .order("created_at", { ascending: false });
     
     if (data) setMaterials(data);
-  };
+  }, []);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadMaterials,
+  });
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,7 +125,12 @@ export default function StudyMaterials() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-6" data-pull-to-refresh>
         <div>
           <h1 className="text-3xl font-bold mb-2">Study Materials</h1>
           <p className="text-muted-foreground">Upload and manage study materials for students</p>
