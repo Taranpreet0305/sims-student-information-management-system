@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Shield, UserCog, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function ManageRoles() {
   const { profile, hasRole } = useFacultyRole();
@@ -28,7 +30,7 @@ export default function ManageRoles() {
     }
   }, [hasElevatedRole]);
 
-  const loadFaculty = async () => {
+  const loadFaculty = useCallback(async () => {
     const { data } = await supabase
       .from("faculty_profiles")
       .select(`
@@ -40,7 +42,11 @@ export default function ManageRoles() {
     if (data) {
       setFaculty(data);
     }
-  };
+  }, []);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadFaculty,
+  });
 
   const assignRole = async () => {
     if (!selectedFaculty || !newRole) {
@@ -126,7 +132,12 @@ export default function ManageRoles() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-4 md:space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-4 md:space-y-6" data-pull-to-refresh>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Role Management</h1>

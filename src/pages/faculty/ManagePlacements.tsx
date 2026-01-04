@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Briefcase, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 interface Placement {
   id: string;
@@ -44,16 +46,16 @@ export default function ManagePlacements() {
     }
   }, [canManage]);
 
-  const loadPlacements = async () => {
+  const loadPlacements = useCallback(async () => {
     const { data } = await supabase
       .from("placements")
       .select("*")
       .order("created_at", { ascending: false });
     
     if (data) setPlacements(data);
-  };
+  }, []);
 
-  const loadApplications = async () => {
+  const loadApplications = useCallback(async () => {
     // Get all applications with placement info
     const { data: appsData } = await supabase
       .from("placement_applications")
@@ -75,7 +77,18 @@ export default function ManagePlacements() {
       }));
       setApplications(merged);
     }
-  };
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    await loadPlacements();
+    if (canManage) {
+      await loadApplications();
+    }
+  }, [loadPlacements, loadApplications, canManage]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,7 +158,12 @@ export default function ManagePlacements() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-6" data-pull-to-refresh>
         <div>
           <h1 className="text-3xl font-bold mb-2">Manage Placements</h1>
           <p className="text-muted-foreground">Post and manage placement drives for students</p>
