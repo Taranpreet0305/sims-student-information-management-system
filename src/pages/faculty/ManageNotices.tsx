@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bell, Trash2, FileText, Upload, Download, Sparkles, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 interface Notice {
   id: string;
@@ -40,7 +42,7 @@ export default function ManageNotices() {
     loadNotices();
   }, []);
 
-  const loadNotices = async () => {
+  const loadNotices = useCallback(async () => {
     const { data } = await supabase
       .from("notifications")
       .select("*")
@@ -48,7 +50,11 @@ export default function ManageNotices() {
       .order("created_at", { ascending: false });
     
     if (data) setNotices(data);
-  };
+  }, []);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadNotices,
+  });
 
   const generateNotice = async () => {
     if (!aiTopic.trim()) {
@@ -155,7 +161,12 @@ export default function ManageNotices() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-6" data-pull-to-refresh>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">Notice Board</h1>
           <p className="text-sm md:text-base text-muted-foreground">Post important notices and announcements for students</p>
