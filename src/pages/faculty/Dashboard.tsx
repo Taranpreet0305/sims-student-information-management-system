@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { StaggeredContent, StaggeredItem } from "@/components/StaggeredContent";
 import { AnimatedLoader } from "@/components/AnimatedLoader";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { toast } from "sonner";
 
 interface DashboardStats {
   totalStudents: number;
@@ -51,7 +54,7 @@ export default function FacultyDashboard() {
     }
   }, [profile, isAdmin, isClassCoordinator]);
 
-  const loadClassRepresentatives = async () => {
+  const loadClassRepresentatives = useCallback(async () => {
     try {
       let query = supabase.from("class_representatives").select("*");
       
@@ -70,9 +73,9 @@ export default function FacultyDashboard() {
     } catch (error) {
       console.error("Error loading class representatives:", error);
     }
-  };
+  }, [isAdmin, isClassCoordinator, profile]);
 
-  const loadDashboardStats = async () => {
+  const loadDashboardStats = useCallback(async () => {
     if (!profile) return;
 
     try {
@@ -202,7 +205,16 @@ export default function FacultyDashboard() {
     } finally {
       setLoadingStats(false);
     }
-  };
+  }, [profile, isAdmin, isClassCoordinator, GRADE_COLORS]);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([loadDashboardStats(), loadClassRepresentatives()]);
+    toast.success("Dashboard refreshed!");
+  }, [loadDashboardStats, loadClassRepresentatives]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
 
   if (loading || !profile) {
     return (
@@ -216,6 +228,12 @@ export default function FacultyDashboard() {
 
   return (
     <FacultyLayout>
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="h-full overflow-y-auto">
       <StaggeredContent className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
         <StaggeredItem>
           <div>
@@ -518,6 +536,7 @@ export default function FacultyDashboard() {
           </StaggeredItem>
         )}
       </StaggeredContent>
+      </div>
     </FacultyLayout>
   );
 }
