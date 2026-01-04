@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { FileText, Download, Search, Eye, ExternalLink } from "lucide-react";
 import { PDFPreview } from "@/components/PDFPreview";
 import { Badge } from "@/components/ui/badge";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 interface StudyMaterial {
   id: string;
@@ -23,17 +25,7 @@ export default function StudyMaterials() {
   const [searchTerm, setSearchTerm] = useState("");
   const [profile, setProfile] = useState<any>(null);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
-    if (profile) {
-      loadMaterials();
-    }
-  }, [profile]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -43,9 +35,9 @@ export default function StudyMaterials() {
         .single();
       setProfile(data);
     }
-  };
+  }, []);
 
-  const loadMaterials = async () => {
+  const loadMaterials = useCallback(async () => {
     if (!profile) return;
 
     const { data } = await supabase
@@ -57,7 +49,23 @@ export default function StudyMaterials() {
       .order("created_at", { ascending: false });
     
     if (data) setMaterials(data);
-  };
+  }, [profile]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadMaterials();
+  }, [loadMaterials]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({ onRefresh: handleRefresh });
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (profile) {
+      loadMaterials();
+    }
+  }, [profile, loadMaterials]);
 
   const filteredMaterials = materials.filter(
     (m) =>
@@ -73,7 +81,12 @@ export default function StudyMaterials() {
 
   return (
     <StudentLayout>
-      <div className="space-y-4 sm:space-y-6 px-1">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="space-y-4 sm:space-y-6 px-1 h-full overflow-y-auto">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Study Materials</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Access course materials, notes, and resources</p>

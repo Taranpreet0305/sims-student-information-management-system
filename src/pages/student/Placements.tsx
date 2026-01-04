@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Briefcase, Calendar, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function Placements() {
   const [placements, setPlacements] = useState<any[]>([]);
@@ -14,12 +16,30 @@ export default function Placements() {
   const [enrollmentNumber, setEnrollmentNumber] = useState("");
   const [studentId, setStudentId] = useState("");
 
-  useEffect(() => {
-    loadUserData();
-    loadPlacements();
+  const loadPlacements = useCallback(async () => {
+    const { data } = await supabase
+      .from("placements")
+      .select("*")
+      .eq("status", "active")
+      .order("date", { ascending: true });
+
+    if (data) {
+      setPlacements(data);
+    }
   }, []);
 
-  const loadUserData = async () => {
+  const loadApplications = useCallback(async (enrollment: string) => {
+    const { data } = await supabase
+      .from("placement_applications")
+      .select("placement_id")
+      .eq("enrollment_number", enrollment);
+
+    if (data) {
+      setApplications(data.map((a) => a.placement_id));
+    }
+  }, []);
+
+  const loadUserData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
@@ -34,30 +54,18 @@ export default function Placements() {
         loadApplications(profile.enrollment_number);
       }
     }
-  };
+  }, [loadApplications]);
 
-  const loadPlacements = async () => {
-    const { data } = await supabase
-      .from("placements")
-      .select("*")
-      .eq("status", "active")
-      .order("date", { ascending: true });
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([loadPlacements(), enrollmentNumber ? loadApplications(enrollmentNumber) : Promise.resolve()]);
+  }, [loadPlacements, loadApplications, enrollmentNumber]);
 
-    if (data) {
-      setPlacements(data);
-    }
-  };
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({ onRefresh: handleRefresh });
 
-  const loadApplications = async (enrollment: string) => {
-    const { data } = await supabase
-      .from("placement_applications")
-      .select("placement_id")
-      .eq("enrollment_number", enrollment);
-
-    if (data) {
-      setApplications(data.map((a) => a.placement_id));
-    }
-  };
+  useEffect(() => {
+    loadUserData();
+    loadPlacements();
+  }, [loadUserData, loadPlacements]);
 
   const handleApply = async (placementId: string) => {
     if (!enrollmentNumber || !studentId) {
@@ -81,10 +89,15 @@ export default function Placements() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="space-y-4 sm:space-y-6 h-full overflow-y-auto">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Placement Opportunities</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Placement Opportunities</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Browse and apply for placement drives and job opportunities
           </p>
         </div>

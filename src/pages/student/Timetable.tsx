@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function Timetable() {
   const [timetable, setTimetable] = useState<any[]>([]);
@@ -10,17 +12,7 @@ export default function Timetable() {
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
-    if (profile) {
-      loadTimetable();
-    }
-  }, [profile]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -32,9 +24,10 @@ export default function Timetable() {
         setProfile(data);
       }
     }
-  };
+  }, []);
 
-  const loadTimetable = async () => {
+  const loadTimetable = useCallback(async () => {
+    if (!profile) return;
     const { data } = await supabase
       .from("timetables")
       .select("*")
@@ -47,7 +40,23 @@ export default function Timetable() {
     if (data) {
       setTimetable(data);
     }
-  };
+  }, [profile]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadTimetable();
+  }, [loadTimetable]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({ onRefresh: handleRefresh });
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (profile) {
+      loadTimetable();
+    }
+  }, [profile, loadTimetable]);
 
   const getTimetableForDay = (day: string) => {
     return timetable.filter((entry) => entry.day_of_week === day);
@@ -55,10 +64,15 @@ export default function Timetable() {
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="space-y-4 sm:space-y-6 h-full overflow-y-auto">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Class Timetable</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Class Timetable</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             {profile && `${profile.course_name} - Year ${profile.year} - Section ${profile.section}`}
           </p>
         </div>
