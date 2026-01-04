@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { StaggeredContent, StaggeredItem } from "@/components/StaggeredContent";
 import { AnimatedLoader } from "@/components/AnimatedLoader";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { toast } from "sonner";
 
 export default function StudentDashboard() {
   const [profile, setProfile] = useState<any>(null);
@@ -17,11 +20,7 @@ export default function StudentDashboard() {
     pendingNotices: 0
   });
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -62,7 +61,20 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadProfile();
+    toast.success("Dashboard refreshed!");
+  }, [loadProfile]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: handleRefresh,
+  });
 
   if (loading) {
     return (
@@ -85,6 +97,12 @@ export default function StudentDashboard() {
 
   return (
     <StudentLayout>
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="h-full overflow-y-auto">
       <StaggeredContent className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
         <StaggeredItem>
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary to-accent p-4 sm:p-6 text-primary-foreground">
@@ -216,6 +234,7 @@ export default function StudentDashboard() {
           </Card>
         </StaggeredItem>
       </StaggeredContent>
+      </div>
     </StudentLayout>
   );
 }
