@@ -1,9 +1,10 @@
 import { Routes, Route, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { lazy, Suspense } from "react";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import PageTransition from "./PageTransition";
+import { FullPageLoader } from "./AnimatedLoader";
 
 const StudentAuth = lazy(() => import("@/pages/StudentAuth"));
 const FacultyAuth = lazy(() => import("@/pages/FacultyAuth"));
@@ -40,12 +41,7 @@ const FacultyEditProfile = lazy(() => import("@/pages/faculty/EditProfile"));
 const ElectionResults = lazy(() => import("@/pages/faculty/ElectionResults"));
 
 const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      <p className="text-muted-foreground animate-pulse">Loading...</p>
-    </div>
-  </div>
+  <FullPageLoader text="Loading..." />
 );
 
 export const AnimatedRoutes = () => {

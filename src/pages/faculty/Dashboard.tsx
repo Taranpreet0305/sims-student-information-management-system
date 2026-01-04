@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { StaggeredContent, StaggeredItem } from "@/components/StaggeredContent";
+import { AnimatedLoader } from "@/components/AnimatedLoader";
 
 interface DashboardStats {
   totalStudents: number;
@@ -205,302 +207,317 @@ export default function FacultyDashboard() {
   if (loading || !profile) {
     return (
       <FacultyLayout>
-        <div className="flex items-center justify-center h-96">Loading...</div>
+        <div className="flex items-center justify-center h-96">
+          <AnimatedLoader size="lg" text="Loading dashboard..." />
+        </div>
       </FacultyLayout>
     );
   }
 
   return (
     <FacultyLayout>
-      <div className="space-y-4 sm:space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">Welcome, {profile.name}!</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">View your faculty profile and responsibilities</p>
-        </div>
+      <StaggeredContent className="space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden">
+        <StaggeredItem>
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1.5 sm:mb-2 break-words">Welcome, {profile.name}!</h1>
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground">View your faculty profile and responsibilities</p>
+          </div>
+        </StaggeredItem>
 
-        <div className="flex gap-2 flex-wrap">
-          {isAdmin && <Badge variant="default">Administrator</Badge>}
-          {isModerator && <Badge variant="secondary">Moderator</Badge>}
-          {isClassCoordinator && <Badge variant="outline">Class Coordinator</Badge>}
-        </div>
+        <StaggeredItem>
+          <div className="flex gap-2 flex-wrap">
+            {isAdmin && <Badge variant="default">Administrator</Badge>}
+            {isModerator && <Badge variant="secondary">Moderator</Badge>}
+            {isClassCoordinator && <Badge variant="outline">Class Coordinator</Badge>}
+          </div>
+        </StaggeredItem>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Students</CardTitle>
-              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{loadingStats ? "..." : stats.totalStudents}</div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-                {isClassCoordinator && !isAdmin ? "In your class" : "All students"}
-              </p>
-            </CardContent>
-          </Card>
+        <StaggeredItem>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 w-full">
+            <Card className="min-w-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Total Students</CardTitle>
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <div className="text-base sm:text-lg md:text-2xl font-bold">{loadingStats ? "..." : stats.totalStudents}</div>
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">
+                  {isClassCoordinator && !isAdmin ? "In your class" : "All students"}
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Pending Approvals</CardTitle>
-              <UserCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{loadingStats ? "..." : stats.pendingApprovals}</div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Students awaiting verification</p>
-            </CardContent>
-          </Card>
+            <Card className="min-w-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Pending</CardTitle>
+                <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <div className="text-base sm:text-lg md:text-2xl font-bold">{loadingStats ? "..." : stats.pendingApprovals}</div>
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Awaiting verification</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Average Attendance</CardTitle>
-              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{loadingStats ? "..." : `${stats.averageAttendance}%`}</div>
-              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Overall class average</p>
-            </CardContent>
-          </Card>
+            <Card className="min-w-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Avg Attendance</CardTitle>
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <div className="text-base sm:text-lg md:text-2xl font-bold">{loadingStats ? "..." : `${stats.averageAttendance}%`}</div>
+                <p className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1 truncate">Class average</p>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Faculty ID</CardTitle>
-              <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg sm:text-2xl font-bold break-all">{profile.faculty_id}</div>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="min-w-0">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Faculty ID</CardTitle>
+                <User className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                <div className="text-xs sm:text-sm md:text-base font-bold truncate">{profile.faculty_id}</div>
+              </CardContent>
+            </Card>
+          </div>
+        </StaggeredItem>
 
         {stats.attendanceBySubject.length > 0 && (
-          <Card className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Attendance by Subject</CardTitle>
-              <CardDescription className="text-xs sm:text-sm">Average attendance percentage across subjects</CardDescription>
-            </CardHeader>
-            <CardContent className="px-2 sm:px-6">
-              <ChartContainer
-                config={{
-                  percentage: {
-                    label: "Attendance %",
-                    color: "hsl(var(--primary))",
-                  },
-                }}
-                className="h-[180px] sm:h-[220px] md:h-[280px] w-full"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.attendanceBySubject} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="subject" 
-                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      interval={0}
-                      angle={-45}
-                      textAnchor="end"
-                      height={50}
-                    />
-                    <YAxis 
-                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                      domain={[0, 100]}
-                      width={30}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="percentage" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Real-time Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-          {/* Grade Distribution Pie Chart */}
-          {stats.gradeDistribution.length > 0 && (
-            <Card className="overflow-hidden">
+          <StaggeredItem>
+            <Card className="overflow-hidden w-full">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Grade Distribution
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">Overall grade breakdown</CardDescription>
+                <CardTitle className="text-sm sm:text-base md:text-lg">Attendance by Subject</CardTitle>
+                <CardDescription className="text-[10px] sm:text-xs md:text-sm">Average attendance percentage</CardDescription>
               </CardHeader>
-              <CardContent className="px-2 sm:px-6">
+              <CardContent className="px-1 sm:px-4 md:px-6">
                 <ChartContainer
                   config={{
-                    count: {
-                      label: "Students",
+                    percentage: {
+                      label: "Attendance %",
                       color: "hsl(var(--primary))",
                     },
                   }}
-                  className="h-[160px] sm:h-[200px] md:h-[220px] w-full"
+                  className="h-[140px] sm:h-[180px] md:h-[240px] w-full"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                      <Pie
-                        data={stats.gradeDistribution}
-                        dataKey="count"
-                        nameKey="grade"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={50}
-                        innerRadius={20}
-                        label={({ grade, count }) => `${grade}: ${count}`}
-                        labelLine={false}
-                        fontSize={10}
-                      >
-                        {stats.gradeDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Recent Activity Line Chart */}
-          {stats.recentActivity.length > 0 && (
-            <Card className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Registration Trend
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">New student registrations (last 7 days)</CardDescription>
-              </CardHeader>
-              <CardContent className="px-2 sm:px-6">
-                <ChartContainer
-                  config={{
-                    count: {
-                      label: "Registrations",
-                      color: "hsl(var(--primary))",
-                    },
-                  }}
-                  className="h-[160px] sm:h-[200px] md:h-[220px] w-full"
-                >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={stats.recentActivity} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                    <BarChart data={stats.attendanceBySubject} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
-                        dataKey="date" 
-                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        dataKey="subject" 
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 8 }}
                         tickLine={false}
                         axisLine={false}
+                        interval={0}
+                        angle={-45}
+                        textAnchor="end"
+                        height={40}
                       />
                       <YAxis 
-                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 8 }}
                         tickLine={false}
                         axisLine={false}
-                        allowDecimals={false}
-                        width={30}
+                        domain={[0, 100]}
+                        width={25}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="count" 
-                        stroke="hsl(var(--primary))" 
-                        strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--primary))', r: 3 }}
-                      />
-                    </LineChart>
+                      <Bar dataKey="percentage" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               </CardContent>
             </Card>
-          )}
-        </div>
+          </StaggeredItem>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-          {profile.department && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Department</CardTitle>
-                <Building className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{profile.department}</div>
-              </CardContent>
-            </Card>
-          )}
-
-          {isClassCoordinator && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Assigned Class</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {profile.assigned_course} - Year {profile.assigned_year} ({profile.assigned_section})
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Full Name</p>
-                <p className="text-sm text-muted-foreground">{profile.name}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Mail className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">{profile.email}</p>
-              </div>
-            </div>
-            {profile.phone && (
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="text-sm font-medium">Phone</p>
-                  <p className="text-sm text-muted-foreground">{profile.phone}</p>
-                </div>
-              </div>
+        <StaggeredItem>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4 w-full">
+            {stats.gradeDistribution.length > 0 && (
+              <Card className="overflow-hidden min-w-0">
+                <CardHeader className="pb-2 px-3 sm:px-6">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+                    <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Grade Distribution
+                  </CardTitle>
+                  <CardDescription className="text-[10px] sm:text-xs">Overall grade breakdown</CardDescription>
+                </CardHeader>
+                <CardContent className="px-1 sm:px-4 md:px-6">
+                  <ChartContainer
+                    config={{
+                      count: {
+                        label: "Students",
+                        color: "hsl(var(--primary))",
+                      },
+                    }}
+                    className="h-[120px] sm:h-[160px] md:h-[180px] w-full"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <Pie
+                          data={stats.gradeDistribution}
+                          dataKey="count"
+                          nameKey="grade"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={40}
+                          innerRadius={15}
+                          label={({ grade, count }) => `${grade}: ${count}`}
+                          labelLine={false}
+                          fontSize={8}
+                        >
+                          {stats.gradeDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
             )}
-          </CardContent>
-        </Card>
 
-        {classReps.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Class Representatives</CardTitle>
-              <CardDescription>Current CRs across all classes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3">
-                {classReps.map((cr) => (
-                  <div key={cr.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">{cr.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {cr.enrollment_number}
-                      </p>
-                    </div>
-                    <Badge variant="outline">
-                      {cr.course_name} Y{cr.year} ({cr.section})
-                    </Badge>
+            {stats.recentActivity.length > 0 && (
+              <Card className="overflow-hidden min-w-0">
+                <CardHeader className="pb-2 px-3 sm:px-6">
+                  <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+                    <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Registration Trend
+                  </CardTitle>
+                  <CardDescription className="text-[10px] sm:text-xs">Last 7 days</CardDescription>
+                </CardHeader>
+                <CardContent className="px-1 sm:px-4 md:px-6">
+                  <ChartContainer
+                    config={{
+                      count: {
+                        label: "Registrations",
+                        color: "hsl(var(--primary))",
+                      },
+                    }}
+                    className="h-[120px] sm:h-[160px] md:h-[180px] w-full"
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={stats.recentActivity} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 8 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis 
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 8 }}
+                          tickLine={false}
+                          axisLine={false}
+                          allowDecimals={false}
+                          width={20}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="count" 
+                          stroke="hsl(var(--primary))" 
+                          strokeWidth={2}
+                          dot={{ fill: 'hsl(var(--primary))', r: 2 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </StaggeredItem>
+
+        <StaggeredItem>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 w-full">
+            {profile.department && (
+              <Card className="min-w-0">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Department</CardTitle>
+                  <Building className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                  <div className="text-sm sm:text-lg md:text-xl font-bold truncate">{profile.department}</div>
+                </CardContent>
+              </Card>
+            )}
+
+            {isClassCoordinator && (
+              <Card className="min-w-0">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Assigned Class</CardTitle>
+                  <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="px-3 sm:px-6 pb-3 sm:pb-6">
+                  <div className="text-sm sm:text-lg md:text-xl font-bold truncate">
+                    {profile.assigned_course} - Y{profile.assigned_year} ({profile.assigned_section})
                   </div>
-                ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </StaggeredItem>
+
+        <StaggeredItem>
+          <Card className="w-full">
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-sm sm:text-base">Personal Information</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 min-w-0">
+                <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Full Name</p>
+                  <p className="text-xs sm:text-sm font-medium truncate">{profile.name}</p>
+                </div>
               </div>
+              <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 min-w-0">
+                <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs sm:text-sm font-medium truncate">{profile.email}</p>
+                </div>
+              </div>
+              {profile.phone && (
+                <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 min-w-0">
+                  <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Phone</p>
+                    <p className="text-xs sm:text-sm font-medium">{profile.phone}</p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
+        </StaggeredItem>
+
+        {classReps.length > 0 && (
+          <StaggeredItem>
+            <Card className="w-full">
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-sm sm:text-base">Class Representatives</CardTitle>
+                <CardDescription className="text-[10px] sm:text-xs">Current CRs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-2 sm:gap-3">
+                  {classReps.map((cr) => (
+                    <div key={cr.id} className="flex items-center justify-between p-2 sm:p-3 border rounded-lg gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-medium truncate">{cr.name}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                          {cr.enrollment_number}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-[9px] sm:text-xs flex-shrink-0">
+                        {cr.course_name} Y{cr.year}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </StaggeredItem>
         )}
-      </div>
+      </StaggeredContent>
     </FacultyLayout>
   );
 }
