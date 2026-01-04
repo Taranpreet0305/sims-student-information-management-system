@@ -199,6 +199,43 @@ All colors MUST be HSL.
     }
   }
 
+  /* Chart mobile optimization */
+  .recharts-wrapper {
+    max-width: 100% !important;
+  }
+
+  .recharts-surface {
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  @media (max-width: 640px) {
+    .recharts-wrapper {
+      font-size: 10px !important;
+    }
+
+    .recharts-label {
+      font-size: 9px !important;
+    }
+
+    .recharts-legend-item-text {
+      font-size: 10px !important;
+    }
+
+    .recharts-cartesian-axis-tick-value {
+      font-size: 9px !important;
+    }
+  }
+
+  /* Prevent overflow on mobile */
+  .overflow-x-clip {
+    overflow-x: clip;
+  }
+
+  .mobile-full-width {
+    @apply w-full max-w-full overflow-hidden;
+  }
+
   /* Glassmorphism */
   .glass {
     background: hsl(var(--card) / 0.7);

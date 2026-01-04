@@ -272,12 +272,12 @@ export default function FacultyDashboard() {
         </div>
 
         {stats.attendanceBySubject.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Attendance by Subject</CardTitle>
-              <CardDescription>Average attendance percentage across subjects</CardDescription>
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base sm:text-lg">Attendance by Subject</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">Average attendance percentage across subjects</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 sm:px-6">
               <ChartContainer
                 config={{
                   percentage: {
@@ -285,20 +285,27 @@ export default function FacultyDashboard() {
                     color: "hsl(var(--primary))",
                   },
                 }}
-                className="h-[300px]"
+                className="h-[180px] sm:h-[220px] md:h-[280px] w-full"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.attendanceBySubject}>
+                  <BarChart data={stats.attendanceBySubject} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="subject" 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--foreground))' }}
+                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={50}
                     />
                     <YAxis 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--foreground))' }}
+                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                      tickLine={false}
+                      axisLine={false}
                       domain={[0, 100]}
+                      width={30}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="percentage" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -310,18 +317,18 @@ export default function FacultyDashboard() {
         )}
 
         {/* Real-time Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {/* Grade Distribution Pie Chart */}
           {stats.gradeDistribution.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5" />
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                   Grade Distribution
                 </CardTitle>
-                <CardDescription>Overall grade breakdown</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Overall grade breakdown</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2 sm:px-6">
                 <ChartContainer
                   config={{
                     count: {
@@ -329,18 +336,21 @@ export default function FacultyDashboard() {
                       color: "hsl(var(--primary))",
                     },
                   }}
-                  className="h-[250px]"
+                  className="h-[160px] sm:h-[200px] md:h-[220px] w-full"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
+                    <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                       <Pie
                         data={stats.gradeDistribution}
                         dataKey="count"
                         nameKey="grade"
                         cx="50%"
                         cy="50%"
-                        outerRadius={80}
+                        outerRadius={50}
+                        innerRadius={20}
                         label={({ grade, count }) => `${grade}: ${count}`}
+                        labelLine={false}
+                        fontSize={10}
                       >
                         {stats.gradeDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -356,15 +366,15 @@ export default function FacultyDashboard() {
 
           {/* Recent Activity Line Chart */}
           {stats.recentActivity.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
                   Registration Trend
                 </CardTitle>
-                <CardDescription>New student registrations (last 7 days)</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">New student registrations (last 7 days)</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2 sm:px-6">
                 <ChartContainer
                   config={{
                     count: {
@@ -372,20 +382,23 @@ export default function FacultyDashboard() {
                       color: "hsl(var(--primary))",
                     },
                   }}
-                  className="h-[250px]"
+                  className="h-[160px] sm:h-[200px] md:h-[220px] w-full"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={stats.recentActivity}>
+                    <LineChart data={stats.recentActivity} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
                         dataKey="date" 
-                        className="text-xs"
-                        tick={{ fill: 'hsl(var(--foreground))' }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
                       />
                       <YAxis 
-                        className="text-xs"
-                        tick={{ fill: 'hsl(var(--foreground))' }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
                         allowDecimals={false}
+                        width={30}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Line 
@@ -393,7 +406,7 @@ export default function FacultyDashboard() {
                         dataKey="count" 
                         stroke="hsl(var(--primary))" 
                         strokeWidth={2}
-                        dot={{ fill: 'hsl(var(--primary))' }}
+                        dot={{ fill: 'hsl(var(--primary))', r: 3 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
