@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function ManageElections() {
   const { isAdmin, isModerator, loading: roleLoading } = useFacultyRole();
@@ -26,7 +28,7 @@ export default function ManageElections() {
     loadElections();
   }, []);
 
-  const loadElections = async () => {
+  const loadElections = useCallback(async () => {
     const { data } = await supabase
       .from("elections")
       .select("*, candidates(*)")
@@ -35,7 +37,11 @@ export default function ManageElections() {
     if (data) {
       setElections(data);
     }
-  };
+  }, []);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
+    onRefresh: loadElections,
+  });
 
   const handleCreateElection = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -247,7 +253,12 @@ export default function ManageElections() {
 
   return (
     <FacultyLayout>
-      <div className="space-y-4 md:space-y-6">
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        threshold={threshold}
+        isRefreshing={isRefreshing}
+      />
+      <div className="space-y-4 md:space-y-6" data-pull-to-refresh>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Manage Elections</h1>
