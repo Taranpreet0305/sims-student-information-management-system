@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { FileText, Award, TrendingUp, Target } from "lucide-react";
 import { AIStudyRecommendations } from "@/components/AIStudyRecommendations";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function StudentMarks() {
   const [marks, setMarks] = useState<any[]>([]);
@@ -14,28 +16,7 @@ export default function StudentMarks() {
   const [terms, setTerms] = useState<string[]>([]);
   const [enrollment, setEnrollment] = useState<string>("");
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
-    if (enrollment) {
-      loadMarks();
-      loadAttendance();
-    }
-  }, [enrollment]);
-
-  const loadAttendance = async () => {
-    const { data } = await supabase
-      .from("attendance")
-      .select("*")
-      .eq("enrollment_number", enrollment);
-    if (data) {
-      setAttendance(data);
-    }
-  };
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -47,9 +28,21 @@ export default function StudentMarks() {
         setEnrollment(data.enrollment_number);
       }
     }
-  };
+  }, []);
 
-  const loadMarks = async () => {
+  const loadAttendance = useCallback(async () => {
+    if (!enrollment) return;
+    const { data } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("enrollment_number", enrollment);
+    if (data) {
+      setAttendance(data);
+    }
+  }, [enrollment]);
+
+  const loadMarks = useCallback(async () => {
+    if (!enrollment) return;
     const { data } = await supabase
       .from("student_marks")
       .select("*")
@@ -61,7 +54,24 @@ export default function StudentMarks() {
       const uniqueTerms = [...new Set(data.map(m => m.term))];
       setTerms(uniqueTerms);
     }
-  };
+  }, [enrollment]);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([loadMarks(), loadAttendance()]);
+  }, [loadMarks, loadAttendance]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({ onRefresh: handleRefresh });
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (enrollment) {
+      loadMarks();
+      loadAttendance();
+    }
+  }, [enrollment, loadMarks, loadAttendance]);
 
   const getTermMarks = (term: string) => {
     return marks.filter(m => m.term === term);
@@ -89,7 +99,12 @@ export default function StudentMarks() {
 
   return (
     <StudentLayout>
-      <div className="space-y-4 sm:space-y-6">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="space-y-4 sm:space-y-6 h-full overflow-y-auto">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">My Marks</h1>
           <p className="text-sm sm:text-base text-muted-foreground">View your academic performance and grades</p>
