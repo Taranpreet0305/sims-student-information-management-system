@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -6,22 +6,14 @@ import { Bell, Paperclip } from "lucide-react";
 import { format } from "date-fns";
 import { PDFPreview } from "@/components/PDFPreview";
 import { Badge } from "@/components/ui/badge";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function Notices() {
   const [notices, setNotices] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
-    if (profile) {
-      loadNotices();
-    }
-  }, [profile]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -33,9 +25,10 @@ export default function Notices() {
         setProfile(data);
       }
     }
-  };
+  }, []);
 
-  const loadNotices = async () => {
+  const loadNotices = useCallback(async () => {
+    if (!profile) return;
     const { data } = await supabase
       .from("notifications")
       .select("*")
@@ -43,7 +36,6 @@ export default function Notices() {
       .order("created_at", { ascending: false });
 
     if (data) {
-      // Filter notices based on targeting
       const filteredNotices = data.filter((notice) => {
         const courseMatch = !notice.target_course || notice.target_course === profile.course_name;
         const yearMatch = !notice.target_year || notice.target_year === profile.year;
@@ -52,11 +44,32 @@ export default function Notices() {
       });
       setNotices(filteredNotices);
     }
-  };
+  }, [profile]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadNotices();
+  }, [loadNotices]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({ onRefresh: handleRefresh });
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (profile) {
+      loadNotices();
+    }
+  }, [profile, loadNotices]);
 
   return (
     <StudentLayout>
-      <div className="space-y-4 sm:space-y-6 px-1">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="space-y-4 sm:space-y-6 px-1 h-full overflow-y-auto">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Notice Board</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Important announcements and updates</p>

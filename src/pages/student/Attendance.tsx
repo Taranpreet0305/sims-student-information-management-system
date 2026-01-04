@@ -1,26 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Calendar, TrendingUp, TrendingDown } from "lucide-react";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function StudentAttendance() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, present: 0, absent: 0, percentage: 0 });
   const [enrollment, setEnrollment] = useState<string>("");
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
-
-  useEffect(() => {
-    if (enrollment) {
-      loadAttendance();
-    }
-  }, [enrollment]);
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase
@@ -32,9 +24,10 @@ export default function StudentAttendance() {
         setEnrollment(data.enrollment_number);
       }
     }
-  };
+  }, []);
 
-  const loadAttendance = async () => {
+  const loadAttendance = useCallback(async () => {
+    if (!enrollment) return;
     const { data } = await supabase
       .from("attendance")
       .select("*")
@@ -54,7 +47,23 @@ export default function StudentAttendance() {
         percentage: Math.round(percentage),
       });
     }
-  };
+  }, [enrollment]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadAttendance();
+  }, [loadAttendance]);
+
+  const { isRefreshing, pullDistance, threshold } = usePullToRefresh({ onRefresh: handleRefresh });
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  useEffect(() => {
+    if (enrollment) {
+      loadAttendance();
+    }
+  }, [enrollment, loadAttendance]);
 
   const subjectWiseData = attendance.reduce((acc, record) => {
     const existing = acc.find((item: any) => item.subject === record.subject);
@@ -80,7 +89,12 @@ export default function StudentAttendance() {
 
   return (
     <StudentLayout>
-      <div className="space-y-4 sm:space-y-6">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        threshold={threshold} 
+        isRefreshing={isRefreshing} 
+      />
+      <div data-pull-to-refresh className="space-y-4 sm:space-y-6 h-full overflow-y-auto">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-1.5 sm:mb-2">Attendance</h1>
           <p className="text-sm sm:text-base text-muted-foreground">View your attendance records</p>
