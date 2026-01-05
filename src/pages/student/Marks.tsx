@@ -147,11 +147,11 @@ export default function StudentMarks() {
         )}
 
         {marks.length > 0 && (
-          <Card>
+          <Card className="overflow-hidden">
             <CardHeader>
-              <CardTitle>Performance Overview</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Performance Overview</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 sm:px-6">
               <ChartContainer
                 config={{
                   marks: {
@@ -159,20 +159,27 @@ export default function StudentMarks() {
                     color: "hsl(var(--primary))",
                   },
                 }}
-                className="h-[300px]"
+                className="h-[200px] sm:h-[280px] w-full max-w-full"
               >
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
+                  <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="subject" 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--foreground))' }}
+                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 9 }}
+                      tickLine={false}
+                      axisLine={false}
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={50}
                     />
                     <YAxis 
-                      className="text-xs"
-                      tick={{ fill: 'hsl(var(--foreground))' }}
+                      tick={{ fill: 'hsl(var(--foreground))', fontSize: 9 }}
+                      tickLine={false}
+                      axisLine={false}
                       domain={[0, 100]}
+                      width={30}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="marks" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />

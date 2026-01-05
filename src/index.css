@@ -213,14 +213,20 @@ All colors MUST be HSL.
     }
   }
 
-  /* Chart mobile optimization */
+  /* Chart mobile optimization - prevent horizontal scroll */
   .recharts-wrapper {
     max-width: 100% !important;
+    overflow: hidden !important;
   }
 
   .recharts-surface {
     max-width: 100% !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+  }
+
+  .recharts-responsive-container {
+    max-width: 100% !important;
+    overflow: hidden !important;
   }
 
   @media (max-width: 640px) {
@@ -229,16 +235,31 @@ All colors MUST be HSL.
     }
 
     .recharts-label {
-      font-size: 9px !important;
+      font-size: 8px !important;
     }
 
     .recharts-legend-item-text {
-      font-size: 10px !important;
+      font-size: 9px !important;
     }
 
     .recharts-cartesian-axis-tick-value {
-      font-size: 9px !important;
+      font-size: 8px !important;
     }
+
+    .recharts-pie-label-text {
+      font-size: 8px !important;
+    }
+    
+    /* Constrain legend on mobile */
+    .recharts-legend-wrapper {
+      max-width: 100% !important;
+      overflow: hidden !important;
+    }
+  }
+
+  /* Chart container constraints */
+  .chart-container-mobile {
+    @apply w-full max-w-full overflow-hidden;
   }
 
   /* Prevent overflow on mobile */

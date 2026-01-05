@@ -400,12 +400,12 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Course Distribution */}
           {courseDistribution.length > 0 && (
-            <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="text-base md:text-lg">Student Distribution</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Verified students per course</CardDescription>
+            <Card className="overflow-hidden">
+              <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-sm sm:text-base md:text-lg">Student Distribution</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Verified students per course</CardDescription>
               </CardHeader>
-              <CardContent className="p-4 md:p-6 pt-0">
+              <CardContent className="p-2 sm:p-4 md:p-6 pt-0">
                 <ChartContainer
                   config={{
                     students: {
@@ -413,21 +413,25 @@ export default function AdminDashboard() {
                       color: "hsl(var(--primary))",
                     },
                   }}
-                  className="h-[200px] md:h-[300px] w-full"
+                  className="h-[180px] sm:h-[220px] md:h-[280px] w-full max-w-full"
                 >
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={courseDistribution} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                    <BarChart data={courseDistribution} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis 
                         dataKey="course" 
-                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 9 }}
+                        tickLine={false}
+                        axisLine={false}
                         angle={-45}
                         textAnchor="end"
                         height={50}
                         interval={0}
                       />
                       <YAxis 
-                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 9 }}
+                        tickLine={false}
+                        axisLine={false}
                         width={25}
                       />
                       <ChartTooltip content={<ChartTooltipContent />} />
