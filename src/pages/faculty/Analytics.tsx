@@ -145,12 +145,12 @@ export default function Analytics() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="text-base md:text-lg">Grade Distribution</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Student performance by grade</CardDescription>
+            <Card className="overflow-hidden">
+              <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-sm sm:text-base md:text-lg">Grade Distribution</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Student performance by grade</CardDescription>
               </CardHeader>
-              <CardContent className="p-4 md:p-6 pt-0">
+              <CardContent className="p-2 sm:p-4 md:p-6 pt-0">
                 {gradeDistribution.length > 0 ? (
                   <ChartContainer
                     config={{
@@ -159,26 +159,28 @@ export default function Analytics() {
                         color: "hsl(var(--primary))",
                       },
                     }}
-                    className="h-[250px] md:h-[300px] w-full"
+                    className="h-[180px] sm:h-[220px] md:h-[280px] w-full max-w-full"
                   >
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
+                      <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                         <Pie
                           data={gradeDistribution}
                           dataKey="count"
                           nameKey="grade"
                           cx="50%"
                           cy="50%"
-                          outerRadius={60}
+                          outerRadius={50}
+                          innerRadius={20}
                           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                           labelLine={false}
+                          fontSize={9}
                         >
                           {gradeDistribution.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Legend wrapperStyle={{ fontSize: '12px' }} />
+                        <Legend wrapperStyle={{ fontSize: '10px' }} />
                       </PieChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -188,12 +190,12 @@ export default function Analytics() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="p-4 md:p-6">
-                <CardTitle className="text-base md:text-lg">Subject Performance</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Average marks by subject</CardDescription>
+            <Card className="overflow-hidden">
+              <CardHeader className="p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-sm sm:text-base md:text-lg">Subject Performance</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Average marks by subject</CardDescription>
               </CardHeader>
-              <CardContent className="p-4 md:p-6 pt-0">
+              <CardContent className="p-2 sm:p-4 md:p-6 pt-0">
                 {performanceTrends.length > 0 ? (
                   <ChartContainer
                     config={{
@@ -202,23 +204,27 @@ export default function Analytics() {
                         color: "hsl(var(--primary))",
                       },
                     }}
-                    className="h-[250px] md:h-[300px] w-full"
+                    className="h-[180px] sm:h-[220px] md:h-[280px] w-full max-w-full"
                   >
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={performanceTrends} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                      <BarChart data={performanceTrends} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                         <XAxis 
                           dataKey="subject" 
-                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 9 }}
+                          tickLine={false}
+                          axisLine={false}
                           angle={-45}
                           textAnchor="end"
-                          height={60}
+                          height={50}
                           interval={0}
                         />
                         <YAxis 
-                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }}
+                          tick={{ fill: 'hsl(var(--foreground))', fontSize: 9 }}
+                          tickLine={false}
+                          axisLine={false}
                           domain={[0, 100]}
-                          width={30}
+                          width={25}
                         />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="average" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />

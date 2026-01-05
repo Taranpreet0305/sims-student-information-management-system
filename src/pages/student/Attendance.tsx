@@ -144,31 +144,33 @@ export default function StudentAttendance() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>Subject-wise Attendance</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Subject-wise Attendance</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             {chartData.length > 0 ? (
-              <div className="h-[300px] md:h-[400px]">
+              <div className="h-[220px] sm:h-[300px] w-full max-w-full overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                  <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <Pie
                       data={chartData}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}%`}
-                      outerRadius={80}
+                      label={({ name, value }) => `${name.substring(0, 8)}: ${value}%`}
+                      outerRadius={60}
+                      innerRadius={20}
                       fill="#8884d8"
                       dataKey="value"
+                      fontSize={9}
                     >
                       {chartData.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '10px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

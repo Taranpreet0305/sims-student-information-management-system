@@ -105,7 +105,7 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
+            <SheetContent side="left" className="w-72 p-0 transition-transform duration-300 ease-out">
               <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-transparent">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-6 w-6 text-primary" />
@@ -174,8 +174,10 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
           </nav>
         </aside>
 
-        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-8 lg:pb-6">
-          {children}
+        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-8 lg:pb-6 overflow-x-hidden max-w-full">
+          <div className="w-full max-w-full overflow-x-hidden">
+            {children}
+          </div>
         </main>
       </div>
       

@@ -165,42 +165,56 @@ export default function ElectionResults() {
                     </div>
 
                     {/* Bar Chart */}
-                    <div>
-                      <h3 className="font-semibold text-lg mb-4">Vote Distribution</h3>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Bar dataKey="votes" fill="#8884d8" />
-                        </BarChart>
-                      </ResponsiveContainer>
+                    <div className="overflow-hidden">
+                      <h3 className="font-semibold text-sm sm:text-lg mb-3 sm:mb-4">Vote Distribution</h3>
+                      <div className="h-[180px] sm:h-[250px] w-full max-w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis 
+                              dataKey="name" 
+                              tick={{ fontSize: 9 }}
+                              tickLine={false}
+                              axisLine={false}
+                              angle={-45}
+                              textAnchor="end"
+                              height={50}
+                              interval={0}
+                            />
+                            <YAxis tick={{ fontSize: 9 }} width={25} />
+                            <Tooltip />
+                            <Bar dataKey="votes" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
 
                     {/* Pie Chart */}
-                    <div>
-                      <h3 className="font-semibold text-lg mb-4">Vote Share</h3>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                          <Pie
-                            data={chartData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={80}
-                            fill="#8884d8"
-                            dataKey="votes"
-                          >
-                            {chartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
+                    <div className="overflow-hidden">
+                      <h3 className="font-semibold text-sm sm:text-lg mb-3 sm:mb-4">Vote Share</h3>
+                      <div className="h-[180px] sm:h-[250px] w-full max-w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                            <Pie
+                              data={chartData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              label={({ name, percent }) => `${name.substring(0, 8)}: ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={55}
+                              innerRadius={20}
+                              fill="#8884d8"
+                              dataKey="votes"
+                              fontSize={9}
+                            >
+                              {chartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
 
                     {/* All Candidates Table */}
