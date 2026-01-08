@@ -106,12 +106,9 @@ export default function FacultyLayout({ children }: { children: React.ReactNode 
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0 transition-transform duration-300 ease-out">
-              <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary/10 to-transparent">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-6 w-6 text-primary" />
-                  <span className="font-bold text-lg">Faculty Portal</span>
-                </div>
-                <ThemeToggle />
+              <div className="flex items-center gap-2 p-4 pr-12 border-b bg-gradient-to-r from-primary/10 to-transparent">
+                <BookOpen className="h-6 w-6 text-primary" />
+                <span className="font-bold text-lg">Faculty Portal</span>
               </div>
               <nav className="flex flex-col gap-0.5 p-3 overflow-y-auto max-h-[calc(100vh-80px)]">
                 {navItems.map((item) => {
