@@ -6,11 +6,13 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import { Calendar, TrendingUp, TrendingDown } from "lucide-react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { StatCardsSkeleton, ChartSkeleton } from "@/components/PageSkeletons";
 
 export default function StudentAttendance() {
   const [attendance, setAttendance] = useState<any[]>([]);
   const [stats, setStats] = useState({ total: 0, present: 0, absent: 0, percentage: 0 });
   const [enrollment, setEnrollment] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -28,24 +30,28 @@ export default function StudentAttendance() {
 
   const loadAttendance = useCallback(async () => {
     if (!enrollment) return;
-    const { data } = await supabase
-      .from("attendance")
-      .select("*")
-      .eq("enrollment_number", enrollment);
+    try {
+      const { data } = await supabase
+        .from("attendance")
+        .select("*")
+        .eq("enrollment_number", enrollment);
 
-    if (data) {
-      setAttendance(data);
-      
-      const totalClasses = data.reduce((sum, record) => sum + (record.total_classes || 0), 0);
-      const attended = data.reduce((sum, record) => sum + (record.classes_attended || 0), 0);
-      const percentage = totalClasses > 0 ? (attended / totalClasses) * 100 : 0;
-      
-      setStats({
-        total: totalClasses,
-        present: attended,
-        absent: totalClasses - attended,
-        percentage: Math.round(percentage),
-      });
+      if (data) {
+        setAttendance(data);
+        
+        const totalClasses = data.reduce((sum, record) => sum + (record.total_classes || 0), 0);
+        const attended = data.reduce((sum, record) => sum + (record.classes_attended || 0), 0);
+        const percentage = totalClasses > 0 ? (attended / totalClasses) * 100 : 0;
+        
+        setStats({
+          total: totalClasses,
+          present: attended,
+          absent: totalClasses - attended,
+          percentage: Math.round(percentage),
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   }, [enrollment]);
 
@@ -100,6 +106,13 @@ export default function StudentAttendance() {
           <p className="text-sm sm:text-base text-muted-foreground">View your attendance records</p>
         </div>
 
+        {loading ? (
+          <>
+            <StatCardsSkeleton count={4} />
+            <ChartSkeleton title="Subject-wise Attendance" />
+          </>
+        ) : (
+        <>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -179,6 +192,8 @@ export default function StudentAttendance() {
             )}
           </CardContent>
         </Card>
+        </>
+        )}
       </div>
     </StudentLayout>
   );

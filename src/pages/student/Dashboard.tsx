@@ -6,8 +6,8 @@ import { User, Mail, Phone, BookOpen, Calendar, GraduationCap, TrendingUp, Clock
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { StaggeredContent, StaggeredItem } from "@/components/StaggeredContent";
-import { AnimatedLoader } from "@/components/AnimatedLoader";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { DashboardSkeleton } from "@/components/PageSkeletons";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { toast } from "sonner";
 
@@ -79,9 +79,7 @@ export default function StudentDashboard() {
   if (loading) {
     return (
       <StudentLayout>
-        <div className="flex items-center justify-center h-96">
-          <AnimatedLoader size="lg" text="Loading dashboard..." />
-        </div>
+        <DashboardSkeleton />
       </StudentLayout>
     );
   }

@@ -8,10 +8,12 @@ import { PDFPreview } from "@/components/PDFPreview";
 import { Badge } from "@/components/ui/badge";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { NoticesSkeleton } from "@/components/PageSkeletons";
 
 export default function Notices() {
   const [notices, setNotices] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,20 +31,24 @@ export default function Notices() {
 
   const loadNotices = useCallback(async () => {
     if (!profile) return;
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("type", "notice")
-      .order("created_at", { ascending: false });
+    try {
+      const { data } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("type", "notice")
+        .order("created_at", { ascending: false });
 
-    if (data) {
-      const filteredNotices = data.filter((notice) => {
-        const courseMatch = !notice.target_course || notice.target_course === profile.course_name;
-        const yearMatch = !notice.target_year || notice.target_year === profile.year;
-        const sectionMatch = !notice.target_section || notice.target_section === profile.section;
-        return courseMatch && yearMatch && sectionMatch;
-      });
-      setNotices(filteredNotices);
+      if (data) {
+        const filteredNotices = data.filter((notice) => {
+          const courseMatch = !notice.target_course || notice.target_course === profile.course_name;
+          const yearMatch = !notice.target_year || notice.target_year === profile.year;
+          const sectionMatch = !notice.target_section || notice.target_section === profile.section;
+          return courseMatch && yearMatch && sectionMatch;
+        });
+        setNotices(filteredNotices);
+      }
+    } finally {
+      setLoading(false);
     }
   }, [profile]);
 
@@ -75,7 +81,9 @@ export default function Notices() {
           <p className="text-sm sm:text-base text-muted-foreground">Important announcements and updates</p>
         </div>
 
-        {notices.length === 0 ? (
+        {loading ? (
+          <NoticesSkeleton />
+        ) : notices.length === 0 ? (
           <Card className="modern-card">
             <CardContent className="py-8 sm:py-12 text-center">
               <Bell className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3" />
