@@ -9,22 +9,28 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { PlacementsSkeleton } from "@/components/PageSkeletons";
 
 export default function Placements() {
   const [placements, setPlacements] = useState<any[]>([]);
   const [applications, setApplications] = useState<string[]>([]);
   const [enrollmentNumber, setEnrollmentNumber] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const loadPlacements = useCallback(async () => {
-    const { data } = await supabase
-      .from("placements")
-      .select("*")
-      .eq("status", "active")
-      .order("date", { ascending: true });
+    try {
+      const { data } = await supabase
+        .from("placements")
+        .select("*")
+        .eq("status", "active")
+        .order("date", { ascending: true });
 
-    if (data) {
-      setPlacements(data);
+      if (data) {
+        setPlacements(data);
+      }
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -102,7 +108,9 @@ export default function Placements() {
           </p>
         </div>
 
-        {placements.length === 0 ? (
+        {loading ? (
+          <PlacementsSkeleton />
+        ) : placements.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

@@ -9,6 +9,7 @@ import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { toast } from "sonner";
+import { ChartSkeleton } from "@/components/PageSkeletons";
 
 export default function Analytics() {
   const { profile, isAdmin, isClassCoordinator } = useFacultyRole();
@@ -138,11 +139,10 @@ export default function Analytics() {
         </div>
 
         {loading ? (
-          <Card>
-            <CardContent className="py-8 md:py-12 text-center">
-              <p className="text-muted-foreground text-sm">Loading analytics...</p>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <ChartSkeleton title="Grade Distribution" />
+            <ChartSkeleton title="Subject Performance" />
+          </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <Card className="overflow-hidden">

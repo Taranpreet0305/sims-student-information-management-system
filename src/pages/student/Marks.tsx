@@ -9,12 +9,14 @@ import { FileText, Award, TrendingUp, Target } from "lucide-react";
 import { AIStudyRecommendations } from "@/components/AIStudyRecommendations";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { StatCardsSkeleton, ChartSkeleton, TableSkeleton } from "@/components/PageSkeletons";
 
 export default function StudentMarks() {
   const [marks, setMarks] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<any[]>([]);
   const [terms, setTerms] = useState<string[]>([]);
   const [enrollment, setEnrollment] = useState<string>("");
+  const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -43,16 +45,20 @@ export default function StudentMarks() {
 
   const loadMarks = useCallback(async () => {
     if (!enrollment) return;
-    const { data } = await supabase
-      .from("student_marks")
-      .select("*")
-      .eq("enrollment_number", enrollment)
-      .order("term", { ascending: true});
+    try {
+      const { data } = await supabase
+        .from("student_marks")
+        .select("*")
+        .eq("enrollment_number", enrollment)
+        .order("term", { ascending: true});
 
-    if (data) {
-      setMarks(data);
-      const uniqueTerms = [...new Set(data.map(m => m.term))];
-      setTerms(uniqueTerms);
+      if (data) {
+        setMarks(data);
+        const uniqueTerms = [...new Set(data.map(m => m.term))];
+        setTerms(uniqueTerms);
+      }
+    } finally {
+      setLoading(false);
     }
   }, [enrollment]);
 
@@ -110,6 +116,14 @@ export default function StudentMarks() {
           <p className="text-sm sm:text-base text-muted-foreground">View your academic performance and grades</p>
         </div>
 
+        {loading ? (
+          <>
+            <StatCardsSkeleton count={3} />
+            <ChartSkeleton title="Performance Overview" />
+            <TableSkeleton rows={4} cols={6} />
+          </>
+        ) : (
+        <>
         {marks.length > 0 && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <Card>
@@ -258,6 +272,8 @@ export default function StudentMarks() {
               </Card>
             );
           })
+        )}
+        </>
         )}
       </div>
     </StudentLayout>

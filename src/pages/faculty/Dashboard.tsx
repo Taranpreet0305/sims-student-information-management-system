@@ -9,6 +9,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { StaggeredContent, StaggeredItem } from "@/components/StaggeredContent";
 import { AnimatedLoader } from "@/components/AnimatedLoader";
+import { FacultyDashboardSkeleton } from "@/components/PageSkeletons";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { toast } from "sonner";
@@ -219,9 +220,7 @@ export default function FacultyDashboard() {
   if (loading || !profile) {
     return (
       <FacultyLayout>
-        <div className="flex items-center justify-center h-96">
-          <AnimatedLoader size="lg" text="Loading dashboard..." />
-        </div>
+        <FacultyDashboardSkeleton />
       </FacultyLayout>
     );
   }

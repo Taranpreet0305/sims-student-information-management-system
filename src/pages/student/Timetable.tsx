@@ -5,10 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { TimetableSkeleton } from "@/components/PageSkeletons";
 
 export default function Timetable() {
   const [timetable, setTimetable] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -28,17 +30,21 @@ export default function Timetable() {
 
   const loadTimetable = useCallback(async () => {
     if (!profile) return;
-    const { data } = await supabase
-      .from("timetables")
-      .select("*")
-      .eq("course_name", profile.course_name)
-      .eq("year", profile.year)
-      .eq("section", profile.section)
-      .order("day_of_week")
-      .order("start_time");
+    try {
+      const { data } = await supabase
+        .from("timetables")
+        .select("*")
+        .eq("course_name", profile.course_name)
+        .eq("year", profile.year)
+        .eq("section", profile.section)
+        .order("day_of_week")
+        .order("start_time");
 
-    if (data) {
-      setTimetable(data);
+      if (data) {
+        setTimetable(data);
+      }
+    } finally {
+      setLoading(false);
     }
   }, [profile]);
 
@@ -77,6 +83,9 @@ export default function Timetable() {
           </p>
         </div>
 
+        {loading ? (
+          <TimetableSkeleton />
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {daysOfWeek.map((day) => {
             const daySchedule = getTimetableForDay(day);
@@ -112,6 +121,7 @@ export default function Timetable() {
             );
           })}
         </div>
+        )}
       </div>
     </StudentLayout>
   );

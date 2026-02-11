@@ -9,6 +9,7 @@ import { PDFPreview } from "@/components/PDFPreview";
 import { Badge } from "@/components/ui/badge";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { ListItemSkeleton } from "@/components/PageSkeletons";
 
 interface StudyMaterial {
   id: string;
@@ -24,6 +25,7 @@ export default function StudyMaterials() {
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -39,16 +41,19 @@ export default function StudyMaterials() {
 
   const loadMaterials = useCallback(async () => {
     if (!profile) return;
-
-    const { data } = await supabase
-      .from("study_materials")
-      .select("*")
-      .eq("course_name", profile.course_name)
-      .eq("year", profile.year)
-      .or(`section.is.null,section.eq.${profile.section}`)
-      .order("created_at", { ascending: false });
-    
-    if (data) setMaterials(data);
+    try {
+      const { data } = await supabase
+        .from("study_materials")
+        .select("*")
+        .eq("course_name", profile.course_name)
+        .eq("year", profile.year)
+        .or(`section.is.null,section.eq.${profile.section}`)
+        .order("created_at", { ascending: false });
+      
+      if (data) setMaterials(data);
+    } finally {
+      setLoading(false);
+    }
   }, [profile]);
 
   const handleRefresh = useCallback(async () => {
@@ -103,7 +108,9 @@ export default function StudyMaterials() {
         </div>
 
         <div className="grid gap-3 sm:gap-4">
-          {filteredMaterials.length === 0 ? (
+          {loading ? (
+            <ListItemSkeleton count={4} />
+          ) : filteredMaterials.length === 0 ? (
             <Card className="modern-card">
               <CardContent className="py-8 sm:py-12 text-center">
                 <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3" />
