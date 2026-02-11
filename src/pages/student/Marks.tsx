@@ -10,6 +10,7 @@ import { AIStudyRecommendations } from "@/components/AIStudyRecommendations";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { StatCardsSkeleton, ChartSkeleton, TableSkeleton } from "@/components/PageSkeletons";
+import { AnimatedTransition } from "@/components/AnimatedTransition";
 
 export default function StudentMarks() {
   const [marks, setMarks] = useState<any[]>([]);
@@ -116,14 +117,16 @@ export default function StudentMarks() {
           <p className="text-sm sm:text-base text-muted-foreground">View your academic performance and grades</p>
         </div>
 
-        {loading ? (
-          <>
-            <StatCardsSkeleton count={3} />
-            <ChartSkeleton title="Performance Overview" />
-            <TableSkeleton rows={4} cols={6} />
-          </>
-        ) : (
-        <>
+        <AnimatedTransition
+          show={!loading}
+          fallback={
+            <>
+              <StatCardsSkeleton count={3} />
+              <ChartSkeleton title="Performance Overview" />
+              <TableSkeleton rows={4} cols={6} />
+            </>
+          }
+        >
         {marks.length > 0 && (
           <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <Card>
@@ -273,8 +276,7 @@ export default function StudentMarks() {
             );
           })
         )}
-        </>
-        )}
+        </AnimatedTransition>
       </div>
     </StudentLayout>
   );

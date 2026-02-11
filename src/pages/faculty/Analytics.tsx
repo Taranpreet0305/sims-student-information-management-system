@@ -10,6 +10,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { toast } from "sonner";
 import { ChartSkeleton } from "@/components/PageSkeletons";
+import { AnimatedTransition } from "@/components/AnimatedTransition";
 
 export default function Analytics() {
   const { profile, isAdmin, isClassCoordinator } = useFacultyRole();
@@ -138,12 +139,15 @@ export default function Analytics() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            <ChartSkeleton title="Grade Distribution" />
-            <ChartSkeleton title="Subject Performance" />
-          </div>
-        ) : (
+        <AnimatedTransition
+          show={!loading}
+          fallback={
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <ChartSkeleton title="Grade Distribution" />
+              <ChartSkeleton title="Subject Performance" />
+            </div>
+          }
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <Card className="overflow-hidden">
               <CardHeader className="p-3 sm:p-4 md:p-6">
@@ -237,7 +241,7 @@ export default function Analytics() {
               </CardContent>
             </Card>
           </div>
-        )}
+        </AnimatedTransition>
       </div>
     </FacultyLayout>
   );

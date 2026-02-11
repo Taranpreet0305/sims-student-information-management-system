@@ -7,6 +7,7 @@ import { Calendar, TrendingUp, TrendingDown } from "lucide-react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { StatCardsSkeleton, ChartSkeleton } from "@/components/PageSkeletons";
+import { AnimatedTransition } from "@/components/AnimatedTransition";
 
 export default function StudentAttendance() {
   const [attendance, setAttendance] = useState<any[]>([]);
@@ -106,13 +107,15 @@ export default function StudentAttendance() {
           <p className="text-sm sm:text-base text-muted-foreground">View your attendance records</p>
         </div>
 
-        {loading ? (
-          <>
-            <StatCardsSkeleton count={4} />
-            <ChartSkeleton title="Subject-wise Attendance" />
-          </>
-        ) : (
-        <>
+        <AnimatedTransition
+          show={!loading}
+          fallback={
+            <>
+              <StatCardsSkeleton count={4} />
+              <ChartSkeleton title="Subject-wise Attendance" />
+            </>
+          }
+        >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -192,8 +195,7 @@ export default function StudentAttendance() {
             )}
           </CardContent>
         </Card>
-        </>
-        )}
+        </AnimatedTransition>
       </div>
     </StudentLayout>
   );

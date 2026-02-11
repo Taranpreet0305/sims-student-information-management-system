@@ -6,6 +6,7 @@ import { Clock } from "lucide-react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { TimetableSkeleton } from "@/components/PageSkeletons";
+import { AnimatedTransition } from "@/components/AnimatedTransition";
 
 export default function Timetable() {
   const [timetable, setTimetable] = useState<any[]>([]);
@@ -83,9 +84,10 @@ export default function Timetable() {
           </p>
         </div>
 
-        {loading ? (
-          <TimetableSkeleton />
-        ) : (
+        <AnimatedTransition
+          show={!loading}
+          fallback={<TimetableSkeleton />}
+        >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {daysOfWeek.map((day) => {
             const daySchedule = getTimetableForDay(day);
@@ -121,7 +123,7 @@ export default function Timetable() {
             );
           })}
         </div>
-        )}
+        </AnimatedTransition>
       </div>
     </StudentLayout>
   );
