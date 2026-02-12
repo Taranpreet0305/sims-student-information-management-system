@@ -184,13 +184,14 @@ export default function ManageRoles() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">Administrator</SelectItem>
-                      <SelectItem value="hod">Head of Department</SelectItem>
-                      <SelectItem value="vice_principal">Vice Principal</SelectItem>
                       <SelectItem value="director">Director</SelectItem>
                       <SelectItem value="chairman">Chairman</SelectItem>
-                      <SelectItem value="placement_coordinator">Placement Coordinator</SelectItem>
+                      <SelectItem value="vice_principal">Vice Principal</SelectItem>
+                      <SelectItem value="hod">Head of Department</SelectItem>
+                      <SelectItem value="class_coordinator">Class Coordinator</SelectItem>
                       <SelectItem value="associate_professor">Associate Professor</SelectItem>
                       <SelectItem value="assistant_professor">Assistant Professor</SelectItem>
+                      <SelectItem value="placement_coordinator">Placement Coordinator</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

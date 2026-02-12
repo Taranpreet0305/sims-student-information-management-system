@@ -10,8 +10,8 @@ const SESSION_KEYS = {
   LAST_ACTIVITY: "last_activity",
 } as const;
 
-// Session timeout (30 days in milliseconds)
-const SESSION_TIMEOUT = 30 * 24 * 60 * 60 * 1000;
+// Session timeout (7 days in milliseconds)
+const SESSION_TIMEOUT = 7 * 24 * 60 * 60 * 1000;
 
 export function useSessionPersistence() {
   const [user, setUser] = useState<User | null>(null);
