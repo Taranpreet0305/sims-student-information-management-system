@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, Download, UserPlus, FileText, Sparkles, Loader2, AlertTriangle, TrendingDown, Users } from "lucide-react";
+import { Upload, Download, UserPlus, FileText, Sparkles, Loader2, AlertTriangle, TrendingDown, Users, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useFacultyRole } from "@/hooks/useFacultyRole";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
@@ -41,6 +42,17 @@ export default function ManageAttendance() {
   const [aiInsight, setAiInsight] = useState<AIInsight | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
+
+  // Class attendance state
+  const [classAttendanceDate, setClassAttendanceDate] = useState("");
+  const [classAttendanceSubject, setClassAttendanceSubject] = useState("");
+  const [classStudents, setClassStudents] = useState<any[]>([]);
+  const [studentStatuses, setStudentStatuses] = useState<Record<string, boolean>>({});
+  const [loadingClassStudents, setLoadingClassStudents] = useState(false);
+  const [submittingClassAttendance, setSubmittingClassAttendance] = useState(false);
+  const [classCourse, setClassCourse] = useState(profile?.assigned_course || "");
+  const [classYear, setClassYear] = useState(profile?.assigned_year?.toString() || "");
+  const [classSection, setClassSection] = useState(profile?.assigned_section || "");
 
   useEffect(() => {
     loadAttendanceData();
@@ -294,6 +306,91 @@ export default function ManageAttendance() {
     }
   };
 
+  // Load students for class attendance
+  const loadClassStudents = async () => {
+    if (!classCourse || !classYear || !classSection) {
+      toast.error("Please fill in Course, Year, and Section");
+      return;
+    }
+    setLoadingClassStudents(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, name, enrollment_number, student_id")
+        .eq("course_name", classCourse)
+        .eq("year", parseInt(classYear))
+        .eq("section", classSection)
+        .eq("verify", true)
+        .order("name");
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast.error("No verified students found for this class");
+        setClassStudents([]);
+        return;
+      }
+
+      setClassStudents(data);
+      // Default all to present
+      const statuses: Record<string, boolean> = {};
+      data.forEach((s) => { statuses[s.enrollment_number] = true; });
+      setStudentStatuses(statuses);
+      toast.success(`Loaded ${data.length} students`);
+    } catch (error: any) {
+      toast.error("Failed to load students");
+    } finally {
+      setLoadingClassStudents(false);
+    }
+  };
+
+  const markAllPresent = () => {
+    const statuses: Record<string, boolean> = {};
+    classStudents.forEach((s) => { statuses[s.enrollment_number] = true; });
+    setStudentStatuses(statuses);
+  };
+
+  const markAllAbsent = () => {
+    const statuses: Record<string, boolean> = {};
+    classStudents.forEach((s) => { statuses[s.enrollment_number] = false; });
+    setStudentStatuses(statuses);
+  };
+
+  const submitClassAttendance = async () => {
+    if (!classAttendanceDate || !classAttendanceSubject) {
+      toast.error("Please fill in Date and Subject");
+      return;
+    }
+    if (classStudents.length === 0) {
+      toast.error("No students loaded");
+      return;
+    }
+
+    setSubmittingClassAttendance(true);
+    try {
+      const records = classStudents.map((s) => ({
+        student_id: s.student_id,
+        enrollment_number: s.enrollment_number,
+        date: classAttendanceDate,
+        subject: classAttendanceSubject,
+        status: studentStatuses[s.enrollment_number] ? "present" : "absent",
+        total_classes: 1,
+        classes_attended: studentStatuses[s.enrollment_number] ? 1 : 0,
+      }));
+
+      const { error } = await supabase.from("attendance").insert(records);
+      if (error) throw error;
+
+      const presentCount = Object.values(studentStatuses).filter(Boolean).length;
+      toast.success(`Attendance recorded: ${presentCount} present, ${classStudents.length - presentCount} absent`);
+      loadAttendanceData();
+    } catch (error: any) {
+      toast.error("Failed to submit attendance: " + error.message);
+    } finally {
+      setSubmittingClassAttendance(false);
+    }
+  };
+
   return (
     <FacultyLayout>
       <PullToRefreshIndicator
@@ -387,11 +484,131 @@ export default function ManageAttendance() {
           </Card>
         )}
 
-        <Tabs defaultValue="single" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="class" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="class">Class Attendance</TabsTrigger>
             <TabsTrigger value="single">Single Student</TabsTrigger>
             <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="class">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Mark Class Attendance
+                </CardTitle>
+                <CardDescription className="text-sm">Load all students in a class and mark each present or absent</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Course</Label>
+                    <Input
+                      value={classCourse}
+                      onChange={(e) => setClassCourse(e.target.value)}
+                      placeholder="e.g., CSE"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm">Year</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="6"
+                      value={classYear}
+                      onChange={(e) => setClassYear(e.target.value)}
+                      placeholder="e.g., 2"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm">Section</Label>
+                    <Input
+                      value={classSection}
+                      onChange={(e) => setClassSection(e.target.value)}
+                      placeholder="e.g., A"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-sm">Date</Label>
+                    <Input
+                      type="date"
+                      value={classAttendanceDate}
+                      onChange={(e) => setClassAttendanceDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-sm">Subject</Label>
+                    <Input
+                      value={classAttendanceSubject}
+                      onChange={(e) => setClassAttendanceSubject(e.target.value)}
+                      placeholder="e.g., Mathematics"
+                    />
+                  </div>
+                </div>
+                <Button onClick={loadClassStudents} disabled={loadingClassStudents} className="w-full sm:w-auto">
+                  {loadingClassStudents ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Users className="h-4 w-4 mr-2" />}
+                  Load Students
+                </Button>
+
+                {classStudents.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <p className="text-sm font-medium">{classStudents.length} students loaded</p>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={markAllPresent}>
+                          <CheckCircle className="h-3.5 w-3.5 mr-1 text-green-500" /> All Present
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={markAllAbsent}>
+                          <XCircle className="h-3.5 w-3.5 mr-1 text-red-500" /> All Absent
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-lg divide-y max-h-[400px] overflow-y-auto">
+                      {classStudents.map((student, idx) => (
+                        <div key={student.enrollment_number} className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}.</span>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate">{student.name}</p>
+                              <p className="text-xs text-muted-foreground">{student.enrollment_number}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-medium ${studentStatuses[student.enrollment_number] ? 'text-green-600' : 'text-red-500'}`}>
+                              {studentStatuses[student.enrollment_number] ? 'Present' : 'Absent'}
+                            </span>
+                            <Switch
+                              checked={studentStatuses[student.enrollment_number] ?? true}
+                              onCheckedChange={(checked) =>
+                                setStudentStatuses((prev) => ({ ...prev, [student.enrollment_number]: checked }))
+                              }
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex gap-3 text-sm">
+                        <span className="text-green-600 font-medium">
+                          Present: {Object.values(studentStatuses).filter(Boolean).length}
+                        </span>
+                        <span className="text-red-500 font-medium">
+                          Absent: {Object.values(studentStatuses).filter(v => !v).length}
+                        </span>
+                      </div>
+                      <Button onClick={submitClassAttendance} disabled={submittingClassAttendance || !classAttendanceDate || !classAttendanceSubject}>
+                        {submittingClassAttendance ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                        Submit Attendance
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="single">
             <Card>
