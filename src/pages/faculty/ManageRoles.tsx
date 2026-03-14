@@ -31,16 +31,23 @@ export default function ManageRoles() {
   }, [hasElevatedRole]);
 
   const loadFaculty = useCallback(async () => {
-    const { data } = await supabase
+    // Fetch faculty profiles and roles separately (no FK relationship)
+    const { data: profiles } = await supabase
       .from("faculty_profiles")
-      .select(`
-        *,
-        user_roles (role)
-      `)
+      .select("*")
       .order("name");
 
-    if (data) {
-      setFaculty(data);
+    if (profiles) {
+      // Fetch roles for all faculty
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      const facultyWithRoles = profiles.map(p => ({
+        ...p,
+        user_roles: (roles || []).filter(r => r.user_id === p.id).map(r => ({ role: r.role })),
+      }));
+      setFaculty(facultyWithRoles);
     }
   }, []);
 
