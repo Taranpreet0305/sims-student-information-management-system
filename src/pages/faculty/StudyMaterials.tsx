@@ -14,6 +14,7 @@ import { PDFPreview } from "@/components/PDFPreview";
 import { Badge } from "@/components/ui/badge";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { useFacultyRole } from "@/hooks/useFacultyRole";
 
 interface StudyMaterial {
   id: string;
@@ -21,38 +22,71 @@ interface StudyMaterial {
   subject: string;
   course_name: string;
   year: number;
+  semester?: number | null;
   section: string | null;
+  department?: string | null;
   description: string | null;
   file_url: string;
+  file_path?: string | null;
   file_type: string | null;
   created_at: string;
 }
 
 export default function StudyMaterials() {
+  const { isAdmin, assignedClasses } = useFacultyRole();
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     subject: "",
-    course_name: "BCA",
+    course_name: "",
     year: 1,
     section: "",
+    department: "",
     description: "",
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [classKey, setClassKey] = useState("");
 
   useEffect(() => {
     loadMaterials();
   }, []);
 
+  useEffect(() => {
+    if (!isAdmin && assignedClasses.length > 0 && !classKey) {
+      const first = assignedClasses[0];
+      const key = `${first.course}|${first.semester}|${first.section}|${first.subject}|${first.department ?? ""}`;
+      setClassKey(key);
+      setFormData((prev) => ({
+        ...prev,
+        course_name: first.course,
+        year: first.semester,
+        section: first.section,
+        subject: first.subject,
+        department: first.department ?? "",
+      }));
+    }
+  }, [assignedClasses, isAdmin, classKey]);
+
   const loadMaterials = useCallback(async () => {
-    const { data } = await supabase
+    let query = supabase
       .from("study_materials")
       .select("*")
       .order("created_at", { ascending: false });
-    
+
+    if (!isAdmin && assignedClasses.length > 0) {
+      const allowed = assignedClasses.map((cls) => `${cls.course}|${cls.semester}|${cls.section}|${cls.subject}`);
+      const { data } = await query;
+      const filtered = (data || []).filter((m: any) =>
+        allowed.includes(`${m.course_name}|${m.year}|${m.section}|${m.subject}`)
+      );
+      setMaterials(filtered);
+      return;
+    }
+
+    const { data } = await query;
     if (data) setMaterials(data);
-  }, []);
+  }, [isAdmin, assignedClasses]);
 
   const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
     onRefresh: loadMaterials,
@@ -62,6 +96,10 @@ export default function StudyMaterials() {
     e.preventDefault();
     if (!selectedFile) {
       toast.error("Please select a file");
+      return;
+    }
+    if (!isAdmin && !classKey) {
+      toast.error("Please select an assigned class");
       return;
     }
 
@@ -77,7 +115,7 @@ export default function StudyMaterials() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = await supabase.storage
         .from("study-materials")
         .getPublicUrl(filePath);
 
@@ -87,7 +125,10 @@ export default function StudyMaterials() {
           ...formData,
           section: formData.section || null,
           file_url: publicUrl,
+          file_path: filePath,
           file_type: fileExt,
+          semester: formData.year,
+          department: formData.department || null,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
         });
 
@@ -97,9 +138,10 @@ export default function StudyMaterials() {
       setFormData({
         title: "",
         subject: "",
-        course_name: "BCA",
+        course_name: "",
         year: 1,
         section: "",
+        department: "",
         description: "",
       });
       setSelectedFile(null);
@@ -111,10 +153,18 @@ export default function StudyMaterials() {
     }
   };
 
-  const handleDelete = async (id: string, fileUrl: string) => {
+  const handleDelete = async (id: string, fileUrl: string, filePath?: string | null) => {
     try {
-      const filePath = fileUrl.split('/study-materials/')[1];
-      await supabase.storage.from("study-materials").remove([filePath]);
+      const pathToDelete =
+        filePath ||
+        fileUrl.split("/study-materials/")[1] ||
+        fileUrl.split("/o/")[1]?.split("?")[0];
+      if (pathToDelete) {
+        const decodedPath = pathToDelete.includes("%2F")
+          ? decodeURIComponent(pathToDelete)
+          : pathToDelete;
+        await supabase.storage.from("study-materials").remove([decodedPath]);
+      }
       await supabase.from("study_materials").delete().eq("id", id);
       toast.success("Material deleted successfully");
       loadMaterials();
@@ -158,42 +208,75 @@ export default function StudyMaterials() {
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     required
+                    readOnly={!isAdmin}
+                    className={!isAdmin ? "bg-muted" : undefined}
                   />
                 </div>
-                <div>
-                  <Label>Course</Label>
-                  <Select value={formData.course_name} onValueChange={(v) => setFormData({ ...formData, course_name: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BCA">BCA</SelectItem>
-                      <SelectItem value="MCA">MCA</SelectItem>
-                      <SelectItem value="BTech">BTech</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Year</Label>
-                  <Select value={formData.year.toString()} onValueChange={(v) => setFormData({ ...formData, year: parseInt(v) })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4].map((y) => (
-                        <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Section (Optional)</Label>
-                  <Input
-                    value={formData.section}
-                    onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                    placeholder="Leave empty for all sections"
-                  />
-                </div>
+                {!isAdmin ? (
+                  <div className="md:col-span-2">
+                    <Label>Assigned Class</Label>
+                    <Select
+                      value={classKey}
+                      onValueChange={(value) => {
+                        setClassKey(value);
+                        const [course, semester, section, subject, department] = value.split("|");
+                        setFormData((prev) => ({
+                          ...prev,
+                          course_name: course,
+                          year: parseInt(semester),
+                          section,
+                          subject,
+                          department,
+                        }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {assignedClasses.map((cls) => {
+                          const key = `${cls.course}|${cls.semester}|${cls.section}|${cls.subject}|${cls.department ?? ""}`;
+                          return (
+                            <SelectItem key={key} value={key}>
+                              {cls.course} • Sem {cls.semester} • {cls.section} • {cls.subject}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <Label>Course</Label>
+                      <Input
+                        value={formData.course_name}
+                        onChange={(e) => setFormData({ ...formData, course_name: e.target.value })}
+                        placeholder="e.g., BCA"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Semester</Label>
+                      <Input
+                        type="number"
+                        value={formData.year}
+                        onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
+                        min="1"
+                        max="8"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Section</Label>
+                      <Input
+                        value={formData.section}
+                        onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                        placeholder="Section"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
               <div>
                 <Label>Description</Label>
@@ -256,7 +339,7 @@ export default function StudyMaterials() {
                       <Button 
                         variant="destructive" 
                         size="sm" 
-                        onClick={() => handleDelete(material.id, material.file_url)}
+                        onClick={() => handleDelete(material.id, material.file_url, material.file_path)}
                         className="gap-1"
                       >
                         <Trash2 className="h-4 w-4" />

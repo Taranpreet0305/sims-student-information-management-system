@@ -251,7 +251,7 @@ export default function FacultyDashboard() {
 
         <StaggeredItem>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 w-full">
-            <Card className="min-w-0">
+            <Card className="min-w-0 border border-border/60 bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                 <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Total Students</CardTitle>
                 <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
@@ -264,7 +264,7 @@ export default function FacultyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="min-w-0">
+            <Card className="min-w-0 border border-border/60 bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                 <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Pending</CardTitle>
                 <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
@@ -275,7 +275,7 @@ export default function FacultyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="min-w-0">
+            <Card className="min-w-0 border border-border/60 bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                 <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Avg Attendance</CardTitle>
                 <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
@@ -286,7 +286,7 @@ export default function FacultyDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="min-w-0">
+            <Card className="min-w-0 border border-border/60 bg-card/70">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                 <CardTitle className="text-[10px] sm:text-xs md:text-sm font-medium truncate">Faculty ID</CardTitle>
                 <User className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
@@ -300,7 +300,7 @@ export default function FacultyDashboard() {
 
         {stats.attendanceBySubject.length > 0 && (
           <StaggeredItem>
-            <Card className="overflow-hidden w-full">
+            <Card className="overflow-hidden w-full border border-border/60 bg-card/70">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm sm:text-base md:text-lg">Attendance by Subject</CardTitle>
                 <CardDescription className="text-[10px] sm:text-xs md:text-sm">Average attendance percentage</CardDescription>
@@ -348,7 +348,7 @@ export default function FacultyDashboard() {
         <StaggeredItem>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 md:gap-4 w-full">
             {stats.gradeDistribution.length > 0 && (
-              <Card className="overflow-hidden min-w-0">
+              <Card className="overflow-hidden min-w-0 border border-border/60 bg-card/70">
                 <CardHeader className="pb-2 px-3 sm:px-6">
                   <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
                     <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -393,7 +393,7 @@ export default function FacultyDashboard() {
             )}
 
             {stats.recentActivity.length > 0 && (
-              <Card className="overflow-hidden min-w-0">
+              <Card className="overflow-hidden min-w-0 border border-border/60 bg-card/70">
                 <CardHeader className="pb-2 px-3 sm:px-6">
                   <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
                     <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -447,7 +447,7 @@ export default function FacultyDashboard() {
         <StaggeredItem>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 w-full">
             {profile.department && (
-              <Card className="min-w-0">
+              <Card className="min-w-0 border border-border/60 bg-card/70">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                   <CardTitle className="text-xs sm:text-sm font-medium">Department</CardTitle>
                   <Building className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
@@ -459,7 +459,7 @@ export default function FacultyDashboard() {
             )}
 
             {isClassCoordinator && (
-              <Card className="min-w-0">
+              <Card className="min-w-0 border border-border/60 bg-card/70">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
                   <CardTitle className="text-xs sm:text-sm font-medium">Assigned Class</CardTitle>
                   <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
@@ -475,7 +475,7 @@ export default function FacultyDashboard() {
         </StaggeredItem>
 
         <StaggeredItem>
-          <Card className="w-full">
+          <Card className="w-full border border-border/60 bg-card/70">
             <CardHeader className="pb-2 sm:pb-4">
               <CardTitle className="text-sm sm:text-base">Personal Information</CardTitle>
             </CardHeader>
@@ -509,7 +509,7 @@ export default function FacultyDashboard() {
 
         {classReps.length > 0 && (
           <StaggeredItem>
-            <Card className="w-full">
+            <Card className="w-full border border-border/60 bg-card/70">
               <CardHeader className="pb-2 sm:pb-4">
                 <CardTitle className="text-sm sm:text-base">Class Representatives</CardTitle>
                 <CardDescription className="text-[10px] sm:text-xs">Current CRs</CardDescription>

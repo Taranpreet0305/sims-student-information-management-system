@@ -8,14 +8,14 @@ export function Footer() {
       linkedin: "www.linkedin.com/in/taranpreet-singh-a44b8529a",
     },
     {
-      name: "Prabhmeet Singh",
-      github: "https://github.com/prabhmeet",
-      linkedin: "https://linkedin.com/in/prabhmeet",
+      name: "Daksh Gulati",
+      github: "https://github.com/dakshgulati1",
+      linkedin: "https://linkedin.com/in/dakshgulati1",
     },
     {
       name: "Krishna Khurana",
       github: "https://github.com/kr1shnaakhurana",
-      linkedin: "https://linkedin.com/in/krishna",
+      linkedin: "https://www.linkedin.com/in/krishna-khurana-18665b383/",
     },
   ];
 

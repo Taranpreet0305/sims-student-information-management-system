@@ -41,7 +41,6 @@ export default function EditProfile() {
       .update({
         name: formData.get("name") as string,
         phone: formData.get("phone") as string,
-        position: formData.get("position") as string,
       })
       .eq("id", user?.id);
 
@@ -119,12 +118,13 @@ export default function EditProfile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Input
-                  id="position"
-                  name="position"
-                  defaultValue={profile.position || ""}
-                />
+                <Label>Date of Birth</Label>
+                <Input value={profile.dob || ""} readOnly className="bg-muted" />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Input value={profile.role || "N/A"} readOnly className="bg-muted" />
               </div>
 
               <div className="space-y-2">
@@ -132,11 +132,11 @@ export default function EditProfile() {
                 <Input value={profile.department || "N/A"} readOnly className="bg-muted" />
               </div>
 
-              {profile.assigned_course && (
+              {profile.assigned_classes && (
                 <div className="space-y-2">
-                  <Label>Assigned Class</Label>
+                  <Label>Assigned Classes</Label>
                   <Input 
-                    value={`${profile.assigned_course} - Year ${profile.assigned_year} - Section ${profile.assigned_section}`}
+                    value={profile.assigned_classes.length}
                     readOnly 
                     className="bg-muted" 
                   />

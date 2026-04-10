@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { listDocs } from "@/integrations/firebase/firestore";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,11 +32,24 @@ export default function ManageElections() {
   const loadElections = useCallback(async () => {
     const { data } = await supabase
       .from("elections")
-      .select("*, candidates(*)")
+      .select("*")
       .order("created_at", { ascending: false });
 
+    const candidates = await listDocs<any>("candidates");
+    const byElection = new Map<string, any[]>();
+    candidates.forEach((candidate) => {
+      if (!candidate.election_id) return;
+      const list = byElection.get(candidate.election_id) ?? [];
+      list.push(candidate);
+      byElection.set(candidate.election_id, list);
+    });
+
     if (data) {
-      setElections(data);
+      const merged = data.map((election: any) => ({
+        ...election,
+        candidates: byElection.get(election.id) ?? [],
+      }));
+      setElections(merged);
     }
   }, []);
 
@@ -85,14 +99,14 @@ export default function ManageElections() {
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = await supabase.storage
         .from('candidate-photos')
         .getPublicUrl(fileName);
 
       // Update candidate with photo URL
       const { error: updateError } = await supabase
         .from('candidates')
-        .update({ photo_url: publicUrl })
+        .update({ photo_url: publicUrl, photo_path: fileName })
         .eq('id', candidateId);
 
       if (updateError) throw updateError;
@@ -168,16 +182,24 @@ export default function ManageElections() {
     setLoading(false);
   };
 
-  const handleDeleteCandidate = async (candidateId: string, photoUrl: string | null) => {
+  const handleDeleteCandidate = async (
+    candidateId: string,
+    photoUrl: string | null,
+    photoPath?: string | null
+  ) => {
     if (!confirm("Are you sure you want to delete this candidate?")) return;
 
     try {
       // Delete photo if exists
-      if (photoUrl) {
-        const fileName = photoUrl.split('/').pop();
-        if (fileName) {
-          await supabase.storage.from('candidate-photos').remove([fileName]);
-        }
+      const pathToDelete =
+        photoPath ||
+        photoUrl?.split("/candidate-photos/")[1] ||
+        photoUrl?.split("/o/")[1]?.split("?")[0];
+      if (pathToDelete) {
+        const decodedPath = pathToDelete.includes("%2F")
+          ? decodeURIComponent(pathToDelete)
+          : pathToDelete;
+        await supabase.storage.from("candidate-photos").remove([decodedPath]);
       }
 
       // Delete candidate
@@ -521,7 +543,9 @@ export default function ManageElections() {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => handleDeleteCandidate(candidate.id, candidate.photo_url)}
+                                  onClick={() =>
+                                    handleDeleteCandidate(candidate.id, candidate.photo_url, candidate.photo_path)
+                                  }
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>

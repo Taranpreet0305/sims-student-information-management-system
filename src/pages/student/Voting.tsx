@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { listDocs, subscribeDocs } from "@/integrations/firebase/firestore";
 import StudentLayout from "@/components/StudentLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,20 +24,16 @@ export default function StudentVoting() {
       loadElections();
       loadVotedElections();
       
-      // Subscribe to realtime changes
-      const channel = supabase
-        .channel('elections-changes')
-        .on('postgres_changes', {
-          event: '*',
-          schema: 'public',
-          table: 'elections'
-        }, () => {
+      const unsubscribe = subscribeDocs(
+        "elections",
+        { orderBy: { field: "created_at", direction: "desc" } },
+        () => {
           loadElections();
-        })
-        .subscribe();
+        }
+      );
 
       return () => {
-        supabase.removeChannel(channel);
+        unsubscribe();
       };
     }
   }, [enrollment]);
@@ -58,14 +55,24 @@ export default function StudentVoting() {
   const loadElections = async () => {
     const { data } = await supabase
       .from("elections")
-      .select(`
-        *,
-        candidates (*)
-      `)
+      .select("*")
       .order("created_at", { ascending: false });
 
+    const candidates = await listDocs<any>("candidates");
+    const byElection = new Map<string, any[]>();
+    candidates.forEach((candidate) => {
+      if (!candidate.election_id) return;
+      const list = byElection.get(candidate.election_id) ?? [];
+      list.push(candidate);
+      byElection.set(candidate.election_id, list);
+    });
+
     if (data) {
-      setElections(data);
+      const merged = data.map((election: any) => ({
+        ...election,
+        candidates: byElection.get(election.id) ?? [],
+      }));
+      setElections(merged);
     }
   };
 

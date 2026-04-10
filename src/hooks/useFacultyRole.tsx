@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSession } from "@/integrations/firebase/session";
+import { getDocById, listDocs } from "@/integrations/firebase/firestore";
 
 export interface FacultyProfile {
   id: string;
@@ -18,9 +19,19 @@ export interface UserRole {
   role: string;
 }
 
+export interface AssignedClass {
+  course: string;
+  semester: number;
+  section: string;
+  subject: string;
+  time_slot: string;
+  department?: string | null;
+}
+
 export function useFacultyRole() {
   const [profile, setProfile] = useState<FacultyProfile | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
+  const [assignedClasses, setAssignedClasses] = useState<AssignedClass[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,29 +40,32 @@ export function useFacultyRole() {
 
   const loadProfile = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const session = getSession();
+      if (!session?.user) {
         setLoading(false);
         return;
       }
 
-      const { data: profileData } = await supabase
-        .from("faculty_profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      const profileData = await getDocById<FacultyProfile>("faculty_profiles", session.user.id);
 
       if (profileData) {
         setProfile(profileData);
       }
 
-      const { data: rolesData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id);
+      const rolesData = await listDocs<UserRole>("user_roles", {
+        where: [{ field: "user_id", op: "==", value: session.user.id }],
+      });
 
       if (rolesData) {
         setRoles(rolesData);
+      }
+
+      if (profileData?.faculty_id) {
+        const assignments = await listDocs<any>("faculty_assignments", {
+          where: [{ field: "faculty_id", op: "==", value: profileData.faculty_id }],
+        });
+        const classes = assignments.flatMap((a) => a.assigned_classes || []);
+        setAssignedClasses(classes);
       }
     } catch (error) {
       console.error("Error loading faculty profile:", error);
@@ -66,7 +80,7 @@ export function useFacultyRole() {
 
   const isAdmin = hasRole("admin");
   const isModerator = hasRole("moderator");
-  const isClassCoordinator = profile?.assigned_course && profile?.assigned_year && profile?.assigned_section;
+  const isClassCoordinator = assignedClasses.length > 0;
 
   return {
     profile,
@@ -76,5 +90,6 @@ export function useFacultyRole() {
     isAdmin,
     isModerator,
     isClassCoordinator: !!isClassCoordinator,
+    assignedClasses,
   };
 }

@@ -31,7 +31,7 @@ interface AIInsight {
 }
 
 export default function ManageAttendance() {
-  const { profile, isAdmin, isClassCoordinator } = useFacultyRole();
+  const { profile, isAdmin, isClassCoordinator, assignedClasses } = useFacultyRole();
   const [csvData, setCsvData] = useState("");
   const [singleStudentData, setSingleStudentData] = useState({
     enrollment_number: "",
@@ -53,26 +53,44 @@ export default function ManageAttendance() {
   const [classCourse, setClassCourse] = useState(profile?.assigned_course || "");
   const [classYear, setClassYear] = useState(profile?.assigned_year?.toString() || "");
   const [classSection, setClassSection] = useState(profile?.assigned_section || "");
+  const [classKey, setClassKey] = useState("");
+
+  const getAllowedEnrollmentNumbers = useCallback(async () => {
+    if (isAdmin) return null;
+    const enrollmentSet = new Set<string>();
+    for (const cls of assignedClasses) {
+      const { data: students } = await supabase
+        .from("profiles")
+        .select("enrollment_number")
+        .eq("course_name", cls.course)
+        .eq("year", cls.semester)
+        .eq("section", cls.section);
+      students?.forEach((s: any) => enrollmentSet.add(s.enrollment_number));
+    }
+    return enrollmentSet;
+  }, [assignedClasses, isAdmin]);
 
   useEffect(() => {
+    if (!isAdmin && assignedClasses.length > 0 && !classKey) {
+      const first = assignedClasses[0];
+      const key = `${first.course}|${first.semester}|${first.section}|${first.subject}`;
+      setClassKey(key);
+      setClassCourse(first.course);
+      setClassYear(first.semester.toString());
+      setClassSection(first.section);
+      setClassAttendanceSubject(first.subject);
+    }
     loadAttendanceData();
-  }, [profile, isAdmin, isClassCoordinator]);
+  }, [profile, isAdmin, isClassCoordinator, assignedClasses, classKey]);
 
   const loadAttendanceData = useCallback(async () => {
     try {
       let query = supabase.from("attendance").select("*");
 
-      if (!isAdmin && isClassCoordinator && profile) {
-        const { data: students } = await supabase
-          .from("profiles")
-          .select("enrollment_number")
-          .eq("course_name", profile.assigned_course)
-          .eq("year", profile.assigned_year)
-          .eq("section", profile.assigned_section);
-
-        if (students && students.length > 0) {
-          const enrollmentNumbers = students.map(s => s.enrollment_number);
-          query = query.in("enrollment_number", enrollmentNumbers);
+      if (!isAdmin && isClassCoordinator) {
+        const enrollmentSet = await getAllowedEnrollmentNumbers();
+        if (enrollmentSet && enrollmentSet.size > 0) {
+          query = query.in("enrollment_number", Array.from(enrollmentSet));
         }
       }
 
@@ -105,7 +123,7 @@ export default function ManageAttendance() {
     } catch (error) {
       console.error("Error loading attendance:", error);
     }
-  }, [isAdmin, isClassCoordinator, profile]);
+  }, [isAdmin, isClassCoordinator, profile, assignedClasses, getAllowedEnrollmentNumbers]);
 
   const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
     onRefresh: loadAttendanceData,
@@ -156,17 +174,10 @@ export default function ManageAttendance() {
     try {
       let query = supabase.from("attendance").select("*");
 
-      if (!isAdmin && isClassCoordinator && profile) {
-        const { data: students } = await supabase
-          .from("profiles")
-          .select("enrollment_number")
-          .eq("course_name", profile.assigned_course)
-          .eq("year", profile.assigned_year)
-          .eq("section", profile.assigned_section);
-
-        if (students && students.length > 0) {
-          const enrollmentNumbers = students.map(s => s.enrollment_number);
-          query = query.in("enrollment_number", enrollmentNumbers);
+      if (!isAdmin && isClassCoordinator) {
+        const enrollmentSet = await getAllowedEnrollmentNumbers();
+        if (enrollmentSet && enrollmentSet.size > 0) {
+          query = query.in("enrollment_number", Array.from(enrollmentSet));
         }
       }
 
@@ -226,13 +237,26 @@ export default function ManageAttendance() {
     try {
       const { data: studentData } = await supabase
         .from("profiles")
-        .select("student_id, enrollment_number")
+        .select("student_id, enrollment_number, course_name, year, section")
         .eq("enrollment_number", singleStudentData.enrollment_number)
         .single();
 
       if (!studentData) {
         toast.error("Student not found");
         return;
+      }
+
+      if (!isAdmin && isClassCoordinator) {
+        const allowed = assignedClasses.some(
+          (cls) =>
+            cls.course === studentData.course_name &&
+            cls.semester === studentData.year &&
+            cls.section === studentData.section
+        );
+        if (!allowed) {
+          toast.error("You are not assigned to this class");
+          return;
+        }
       }
 
       const { error } = await supabase.from("attendance").insert({
@@ -288,6 +312,17 @@ export default function ManageAttendance() {
             date,
             subject,
           });
+        }
+      }
+
+      if (!isAdmin && isClassCoordinator) {
+        const allowedSet = await getAllowedEnrollmentNumbers();
+        if (allowedSet) {
+          const filtered = records.filter((r: any) => allowedSet.has(r.enrollment_number));
+          if (filtered.length !== records.length) {
+            toast.error("Some records are outside your assigned classes");
+            return;
+          }
         }
       }
 
@@ -501,35 +536,66 @@ export default function ManageAttendance() {
                 <CardDescription className="text-sm">Load all students in a class and mark each present or absent</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {!isAdmin ? (
                   <div className="space-y-1">
-                    <Label className="text-sm">Course</Label>
-                    <Input
-                      value={classCourse}
-                      onChange={(e) => setClassCourse(e.target.value)}
-                      placeholder="e.g., CSE"
-                    />
+                    <Label className="text-sm">Assigned Class</Label>
+                    <Select
+                      value={classKey}
+                      onValueChange={(value) => {
+                        setClassKey(value);
+                        const [course, semester, section, subject] = value.split("|");
+                        setClassCourse(course);
+                        setClassYear(semester);
+                        setClassSection(section);
+                        setClassAttendanceSubject(subject);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select class" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {assignedClasses.map((cls) => {
+                          const key = `${cls.course}|${cls.semester}|${cls.section}|${cls.subject}`;
+                          return (
+                            <SelectItem key={key} value={key}>
+                              {cls.course} • Sem {cls.semester} • {cls.section} • {cls.subject}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-sm">Year</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="6"
-                      value={classYear}
-                      onChange={(e) => setClassYear(e.target.value)}
-                      placeholder="e.g., 2"
-                    />
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-sm">Course</Label>
+                      <Input
+                        value={classCourse}
+                        onChange={(e) => setClassCourse(e.target.value)}
+                        placeholder="e.g., CSE"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Year</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="6"
+                        value={classYear}
+                        onChange={(e) => setClassYear(e.target.value)}
+                        placeholder="e.g., 2"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Section</Label>
+                      <Input
+                        value={classSection}
+                        onChange={(e) => setClassSection(e.target.value)}
+                        placeholder="e.g., A"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-sm">Section</Label>
-                    <Input
-                      value={classSection}
-                      onChange={(e) => setClassSection(e.target.value)}
-                      placeholder="e.g., A"
-                    />
-                  </div>
-                </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <Label className="text-sm">Date</Label>
@@ -545,6 +611,8 @@ export default function ManageAttendance() {
                       value={classAttendanceSubject}
                       onChange={(e) => setClassAttendanceSubject(e.target.value)}
                       placeholder="e.g., Mathematics"
+                      readOnly={!isAdmin}
+                      className={!isAdmin ? "bg-muted" : undefined}
                     />
                   </div>
                 </div>

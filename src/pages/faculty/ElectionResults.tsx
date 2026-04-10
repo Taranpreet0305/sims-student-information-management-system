@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { listDocs } from "@/integrations/firebase/firestore";
 import FacultyLayout from "@/components/FacultyLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,12 +40,25 @@ export default function ElectionResults() {
   const loadElections = async () => {
     const { data } = await supabase
       .from("elections")
-      .select("*, candidates(*)")
+      .select("*")
       .eq("status", "completed")
       .order("end_date", { ascending: false });
 
+    const candidates = await listDocs<any>("candidates");
+    const byElection = new Map<string, any[]>();
+    candidates.forEach((candidate) => {
+      if (!candidate.election_id) return;
+      const list = byElection.get(candidate.election_id) ?? [];
+      list.push(candidate);
+      byElection.set(candidate.election_id, list);
+    });
+
     if (data) {
-      setElections(data);
+      const merged = data.map((election: any) => ({
+        ...election,
+        candidates: byElection.get(election.id) ?? [],
+      }));
+      setElections(merged);
     }
   };
 

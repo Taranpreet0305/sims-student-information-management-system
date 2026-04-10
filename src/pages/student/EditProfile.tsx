@@ -40,6 +40,7 @@ export default function EditProfile() {
       .from("profiles")
       .update({
         name: formData.get("name") as string,
+        email: formData.get("email") as string,
         phone: formData.get("phone") as string,
       })
       .eq("id", user?.id);
@@ -88,12 +89,12 @@ export default function EditProfile() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email (Read Only)</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  value={profile.email}
-                  readOnly
-                  className="bg-muted"
+                  name="email"
+                  defaultValue={profile.email}
+                  required
                 />
               </div>
 
@@ -140,6 +141,22 @@ export default function EditProfile() {
                   <Label>Section</Label>
                   <Input value={profile.section} readOnly className="bg-muted" />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Date of Birth</Label>
+                  <Input value={profile.dob || ""} readOnly className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Aadhaar Number</Label>
+                  <Input value={profile.aadhaar_number || ""} readOnly className="bg-muted" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Admission Year</Label>
+                <Input value={profile.admission_year || ""} readOnly className="bg-muted" />
               </div>
 
               <Button type="submit" disabled={loading}>

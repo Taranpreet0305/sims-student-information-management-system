@@ -1,51 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithProfile } from "@/integrations/firebase/auth";
-import { getSession, clearSession } from "@/integrations/firebase/session";
-import { getDocById } from "@/integrations/firebase/firestore";
+import { clearSession } from "@/integrations/firebase/session";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Eye, EyeOff, BookOpen, Loader2 } from "lucide-react";
-import { AnimatedBackground } from "@/components/AnimatedBackground";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { Eye, EyeOff, Shield } from "lucide-react";
 
 const loginSchema = z.object({
-  faculty_id: z.string().min(3, "Invalid faculty ID").max(20, "Faculty ID too long"),
+  faculty_id: z.string().min(3, "Invalid admin ID").max(20, "Admin ID too long"),
   password: z.string().min(1, "Password required"),
 });
 
-export default function FacultyAuth() {
+export default function AdminAuth() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [checkingSession, setCheckingSession] = useState(true);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const session = getSession();
-      if (session?.userType === "faculty") {
-        const profile = await getDocById<{ verify?: boolean; profile_completed?: boolean }>(
-          "faculty_profiles",
-          session.user.id
-        );
-        if (profile?.verify) {
-          if (!profile.profile_completed) {
-            navigate("/faculty/profile-complete");
-            return;
-          }
-          navigate("/faculty/dashboard");
-          return;
-        }
-      }
-      setCheckingSession(false);
-    };
-
-    checkSession();
-  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -79,58 +53,48 @@ export default function FacultyAuth() {
     }
 
     if (!user?.verify) {
-      toast.error("Your account is pending approval by the admin");
+      toast.error("Your account is pending approval");
       clearSession();
       setLoading(false);
       return;
     }
 
-    if (!user.profile_completed) {
-      toast.success("Welcome! Please complete your profile.");
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const isAdmin = roleData?.some((r: any) => r.role === "admin");
+    if (!isAdmin) {
+      toast.error("You are not an admin");
+      clearSession();
       setLoading(false);
-      navigate("/faculty/profile-complete");
       return;
     }
 
-    toast.success("Login successful!");
-    navigate("/faculty/dashboard");
-
+    toast.success("Admin login successful!");
+    navigate("/faculty/admin-dashboard");
     setLoading(false);
   };
 
-  if (checkingSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <AnimatedBackground />
-        <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      <AnimatedBackground />
-
-      <div className="fixed top-4 right-4 z-50">
-        <ThemeToggle />
-      </div>
-
       <Card className="w-full max-w-md bg-card/80 backdrop-blur-xl border-2 shadow-2xl relative z-10">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center shadow-lg">
-              <BookOpen className="w-7 h-7 text-accent-foreground" />
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+              <Shield className="w-7 h-7 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center font-bold">Faculty Portal</CardTitle>
+          <CardTitle className="text-2xl text-center font-bold">Admin Portal</CardTitle>
           <CardDescription className="text-center">
-            Sign in with your faculty ID
+            Sign in with admin faculty ID
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="faculty_id">Faculty ID</Label>
+              <Label htmlFor="faculty_id">Admin ID</Label>
               <Input id="faculty_id" name="faculty_id" required />
             </div>
             <div className="space-y-2">
@@ -148,18 +112,10 @@ export default function FacultyAuth() {
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Forgot your password? Contact the admin.
-            </p>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
-          <div className="mt-4 text-center">
-            <Button variant="link" onClick={() => navigate("/")}>
-              Back to Home
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

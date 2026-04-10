@@ -1,5 +1,5 @@
 import { useLocation, Link } from "react-router-dom";
-import { Home, Calendar, FileText, Bell, Vote, Menu, Moon, Sun, X } from "lucide-react";
+import { Home, Calendar, FileText, Bell, Menu, Moon, Sun, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "@/components/ThemeProvider";
@@ -123,7 +123,7 @@ export const studentNavItems: NavItem[] = [
 // Faculty Navigation Items
 export const facultyNavItems: NavItem[] = [
   { path: "/faculty/dashboard", icon: Home, label: "Home" },
-  { path: "/faculty/approve-students", icon: Vote, label: "Approve" },
+  { path: "/faculty/study-materials", icon: FileText, label: "Materials" },
   { path: "/faculty/add-attendance", icon: Calendar, label: "Attendance" },
   { path: "/faculty/notices", icon: Bell, label: "Notices" },
 ];

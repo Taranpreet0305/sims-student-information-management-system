@@ -43,12 +43,13 @@ export default function StudyMaterials() {
   const loadMaterials = useCallback(async () => {
     if (!profile) return;
     try {
+      const courseName = profile.course_name || profile.course;
       const { data } = await supabase
         .from("study_materials")
         .select("*")
-        .eq("course_name", profile.course_name)
+        .eq("course_name", courseName)
         .eq("year", profile.year)
-        .or(`section.is.null,section.eq.${profile.section}`)
+        .eq("section", profile.section)
         .order("created_at", { ascending: false });
       
       if (data) setMaterials(data);

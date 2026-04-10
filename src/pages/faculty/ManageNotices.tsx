@@ -112,7 +112,7 @@ export default function ManageNotices() {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data: { publicUrl } } = await supabase.storage
           .from('notice-pdfs')
           .getPublicUrl(filePath);
 

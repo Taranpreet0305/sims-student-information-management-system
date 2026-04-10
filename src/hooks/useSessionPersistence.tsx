@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Session, User } from "@supabase/supabase-js";
+import { clearSession, getLastActivity, getSession, updateLastActivity, type Session, type SessionUser } from "@/integrations/firebase/session";
 
 // Session storage keys for persistence
 const SESSION_KEYS = {
@@ -14,7 +13,7 @@ const SESSION_KEYS = {
 const SESSION_TIMEOUT = 7 * 24 * 60 * 60 * 1000;
 
 export function useSessionPersistence() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
@@ -22,16 +21,12 @@ export function useSessionPersistence() {
   const location = useLocation();
 
   // Update last activity timestamp
-  const updateLastActivity = useCallback(() => {
-    localStorage.setItem(SESSION_KEYS.LAST_ACTIVITY, Date.now().toString());
-  }, []);
-
   // Check if session is still valid based on last activity
   const isSessionValid = useCallback(() => {
-    const lastActivity = localStorage.getItem(SESSION_KEYS.LAST_ACTIVITY);
+    const lastActivity = getLastActivity();
     if (!lastActivity) return true;
-    
-    const timeSinceActivity = Date.now() - parseInt(lastActivity, 10);
+
+    const timeSinceActivity = Date.now() - lastActivity;
     return timeSinceActivity < SESSION_TIMEOUT;
   }, []);
 
@@ -52,54 +47,10 @@ export function useSessionPersistence() {
   useEffect(() => {
     let mounted = true;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        if (!mounted) return;
-
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-
-        // Handle session events
-        if (event === "SIGNED_IN" && currentSession) {
-          updateLastActivity();
-          // Defer navigation to avoid auth deadlock
-          setTimeout(() => {
-            if (!mounted) return;
-            const userType = localStorage.getItem(SESSION_KEYS.USER_TYPE);
-            if (userType === "student" && !location.pathname.startsWith("/student")) {
-              navigate("/student/dashboard", { replace: true });
-            } else if (userType === "faculty" && !location.pathname.startsWith("/faculty")) {
-              navigate("/faculty/dashboard", { replace: true });
-            }
-          }, 0);
-        }
-
-        if (event === "SIGNED_OUT") {
-          localStorage.removeItem(SESSION_KEYS.USER_TYPE);
-          localStorage.removeItem(SESSION_KEYS.LAST_ACTIVITY);
-          localStorage.removeItem(SESSION_KEYS.SESSION_CHECKED);
-          navigate("/", { replace: true });
-        }
-
-        if (event === "TOKEN_REFRESHED") {
-          updateLastActivity();
-        }
-      }
-    );
-
-    // THEN check for existing session
+    // Check for existing session
     const initializeSession = async () => {
       try {
-        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Session retrieval error:", error);
-          setLoading(false);
-          setInitialized(true);
-          return;
-        }
-
+        const existingSession = getSession();
         if (!mounted) return;
 
         setSession(existingSession);
@@ -110,6 +61,8 @@ export function useSessionPersistence() {
           updateLastActivity();
           const userType = localStorage.getItem(SESSION_KEYS.USER_TYPE);
           handleNavigation(userType, location.pathname);
+        } else if (existingSession?.user && !isSessionValid()) {
+          clearSession();
         }
 
         setLoading(false);
@@ -140,7 +93,6 @@ export function useSessionPersistence() {
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
       activityEvents.forEach(event => {
         window.removeEventListener(event, handleActivity);
       });
@@ -149,7 +101,7 @@ export function useSessionPersistence() {
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      clearSession();
       localStorage.removeItem(SESSION_KEYS.USER_TYPE);
       localStorage.removeItem(SESSION_KEYS.LAST_ACTIVITY);
       localStorage.removeItem(SESSION_KEYS.SESSION_CHECKED);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { listDocs, subscribeDocs, updateDocById } from "@/integrations/firebase/firestore";
 import { toast } from "sonner";
 
 export interface FacultyNotification {
@@ -23,32 +23,35 @@ export function useRealtimeNotifications(facultyId: string | undefined) {
 
     loadNotifications();
 
-    // Subscribe to real-time notifications
-    const channel = supabase
-      .channel('faculty-notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'faculty_notifications',
-          filter: `faculty_id=eq.${facultyId}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as FacultyNotification;
-          setNotifications((prev) => [newNotification, ...prev]);
-          setUnreadCount((prev) => prev + 1);
-          
-          // Show toast notification
-          toast.info(newNotification.title, {
-            description: newNotification.message,
-          });
+    const seen = new Set<string>();
+    let initialized = false;
+    const unsubscribe = subscribeDocs<FacultyNotification>(
+      "faculty_notifications",
+      {
+        where: [{ field: "faculty_id", op: "==", value: facultyId }],
+        orderBy: { field: "created_at", direction: "desc" },
+        limit: 50,
+      },
+      (docs) => {
+        setNotifications(docs);
+        setUnreadCount(docs.filter((n) => !n.read).length);
+        if (!initialized) {
+          docs.forEach((n) => seen.add(n.id));
+          initialized = true;
+          return;
         }
-      )
-      .subscribe();
+        docs.forEach((n) => {
+          if (seen.has(n.id)) return;
+          seen.add(n.id);
+          toast.info(n.title, {
+            description: n.message,
+          });
+        });
+      }
+    );
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [facultyId]);
 
@@ -56,17 +59,14 @@ export function useRealtimeNotifications(facultyId: string | undefined) {
     if (!facultyId) return;
 
     try {
-      const { data } = await supabase
-        .from("faculty_notifications")
-        .select("*")
-        .eq("faculty_id", facultyId)
-        .order("created_at", { ascending: false })
-        .limit(50);
+      const data = await listDocs<FacultyNotification>("faculty_notifications", {
+        where: [{ field: "faculty_id", op: "==", value: facultyId }],
+        orderBy: { field: "created_at", direction: "desc" },
+        limit: 50,
+      });
 
-      if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.read).length);
-      }
+      setNotifications(data);
+      setUnreadCount(data.filter((n) => !n.read).length);
     } catch (error) {
       console.error("Error loading notifications:", error);
     } finally {
@@ -76,10 +76,7 @@ export function useRealtimeNotifications(facultyId: string | undefined) {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await supabase
-        .from("faculty_notifications")
-        .update({ read: true })
-        .eq("id", notificationId);
+      await updateDocById("faculty_notifications", notificationId, { read: true });
 
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
@@ -94,15 +91,12 @@ export function useRealtimeNotifications(facultyId: string | undefined) {
     if (!facultyId) return;
 
     try {
-      await supabase
-        .from("faculty_notifications")
-        .update({ read: true })
-        .eq("faculty_id", facultyId)
-        .eq("read", false);
+      const unread = notifications.filter((n) => !n.read);
+      for (const n of unread) {
+        await updateDocById("faculty_notifications", n.id, { read: true });
+      }
 
-      setNotifications((prev) =>
-        prev.map((n) => ({ ...n, read: true }))
-      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error("Error marking all as read:", error);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { getSession, clearSession } from "@/integrations/firebase/session";
+import { getDocById } from "@/integrations/firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, Home, Calendar, FileText, Vote, Bell, Briefcase, MessageSquare, LogOut, BookOpen, User, Clock, Menu, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -24,23 +25,28 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   }, []);
 
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    const session = getSession();
+    if (!session?.user) {
       navigate("/student-auth");
       return;
     }
 
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle();
+    const profileData = await getDocById<any>("profiles", session.user.id);
 
     if (!profileData || !profileData.verify) {
       toast.error("Access denied");
-      await supabase.auth.signOut();
+      clearSession();
       navigate("/student-auth");
+      return;
+    }
+
+    if (!profileData.profile_completed) {
+      if (location.pathname !== "/student/profile-complete") {
+        navigate("/student/profile-complete");
+        return;
+      }
+      setProfile(profileData);
+      setLoading(false);
       return;
     }
 
@@ -49,7 +55,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    clearSession();
     localStorage.clear();
     toast.success("Logged out successfully");
     navigate("/");
@@ -80,7 +86,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   return (
     <div className="min-h-screen flex flex-col relative">
       <AnimatedBackground />
-      <header className="sticky top-0 z-50 w-full border-b bg-card/90 backdrop-blur-xl supports-[backdrop-filter]:bg-card/70">
+      <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/70 backdrop-blur-xl">
         <div className="container flex h-14 sm:h-16 items-center gap-2 sm:gap-4 px-3 sm:px-4">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
@@ -88,8 +94,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0 transition-transform duration-300 ease-out">
-              <div className="flex items-center gap-2 p-4 pr-12 border-b bg-gradient-to-r from-primary/10 to-transparent">
+            <SheetContent side="left" className="w-72 p-0">
+              <div className="flex items-center gap-2 p-4 pr-12 border-b border-border/60 bg-background/80">
                 <GraduationCap className="h-6 w-6 text-primary" />
                 <span className="font-bold text-lg">Student Portal</span>
               </div>
@@ -101,7 +107,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                     <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}>
                       <Button
                         variant={isActive ? "secondary" : "ghost"}
-                        className={`w-full justify-start h-10 ${isActive ? 'bg-primary/10 text-primary' : ''}`}
+                        className={`w-full justify-start h-10 ${isActive ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}
                         size="sm"
                       >
                         <Icon className="mr-2 h-4 w-4" />
@@ -136,7 +142,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       </header>
 
       <div className="flex flex-1 relative z-10">
-        <aside className="w-64 border-r bg-card/80 backdrop-blur-sm min-h-[calc(100vh-4rem)] hidden lg:block">
+        <aside className="w-64 border-r border-border/60 bg-background/70 backdrop-blur-sm min-h-[calc(100vh-4rem)] hidden lg:block">
           <nav className="flex flex-col gap-1 p-4">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -145,7 +151,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 <Link key={item.path} to={item.path}>
                   <Button
                     variant={isActive ? "secondary" : "ghost"}
-                    className={`w-full justify-start transition-all ${isActive ? 'bg-primary/10 text-primary shadow-sm' : 'hover:bg-muted/50'}`}
+                    className={`w-full justify-start transition-colors ${isActive ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}
                   >
                     <Icon className="mr-2 h-4 w-4" />
                     {item.label}

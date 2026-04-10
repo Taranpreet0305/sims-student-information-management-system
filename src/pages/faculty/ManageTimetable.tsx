@@ -13,37 +13,35 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 
 export default function ManageTimetable() {
-  const { profile, isAdmin, isClassCoordinator, loading: roleLoading } = useFacultyRole();
+  const { profile, isAdmin, loading: roleLoading } = useFacultyRole();
   const [timetable, setTimetable] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [facultyList, setFacultyList] = useState<any[]>([]);
 
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   useEffect(() => {
     if (profile) {
       loadTimetable();
+      loadFaculty();
     }
   }, [profile]);
 
   const loadTimetable = useCallback(async () => {
     if (!profile) return;
 
-    let query = supabase.from("timetables").select("*");
-
-    if (!isAdmin && isClassCoordinator) {
-      query = query
-        .eq("course_name", profile.assigned_course)
-        .eq("year", profile.assigned_year)
-        .eq("section", profile.assigned_section);
-    }
-
-    const { data } = await query.order("day_of_week").order("start_time");
+    const { data } = await supabase.from("timetables").select("*").order("day_of_week").order("start_time");
 
     if (data) {
       setTimetable(data);
     }
-  }, [profile, isAdmin, isClassCoordinator]);
+  }, [profile, isAdmin]);
+
+  const loadFaculty = useCallback(async () => {
+    const { data } = await supabase.from("faculty_profiles").select("id, name, faculty_id");
+    if (data) setFacultyList(data);
+  }, []);
 
   const { isRefreshing, pullDistance, threshold } = usePullToRefresh({
     onRefresh: loadTimetable,
@@ -56,6 +54,7 @@ export default function ManageTimetable() {
     const formData = new FormData(e.currentTarget);
     const { data: { user } } = await supabase.auth.getUser();
 
+    const facultyId = formData.get("faculty_id") as string;
     const { error } = await supabase.from("timetables").insert({
       course_name: formData.get("course_name") as string,
       year: parseInt(formData.get("year") as string),
@@ -65,6 +64,7 @@ export default function ManageTimetable() {
       end_time: formData.get("end_time") as string,
       subject: formData.get("subject") as string,
       faculty_name: formData.get("faculty_name") as string,
+      faculty_id: facultyId,
       room_number: formData.get("room_number") as string,
       created_by: user?.id,
     });
@@ -72,6 +72,40 @@ export default function ManageTimetable() {
     if (error) {
       toast.error("Failed to add timetable entry");
     } else {
+      // Ensure assignment exists for permissions
+      const { data: assignment } = await supabase
+        .from("faculty_assignments")
+        .select("*")
+        .eq("faculty_id", facultyId)
+        .maybeSingle();
+      const next = [
+        ...(assignment?.assigned_classes || []),
+        {
+          course: formData.get("course_name") as string,
+          semester: parseInt(formData.get("year") as string),
+          section: formData.get("section") as string,
+          subject: formData.get("subject") as string,
+          time_slot: `${formData.get("start_time")} - ${formData.get("end_time")}`,
+        },
+      ];
+      if (assignment?.id) {
+        await supabase.from("faculty_assignments").update({ assigned_classes: next }).eq("id", assignment.id);
+      } else {
+        await supabase.from("faculty_assignments").insert({
+          faculty_id: facultyId,
+          assigned_classes: next,
+        });
+      }
+
+      await supabase
+        .from("faculty_profiles")
+        .update({
+          assigned_course: formData.get("course_name") as string,
+          assigned_year: parseInt(formData.get("year") as string),
+          assigned_section: formData.get("section") as string,
+        })
+        .eq("faculty_id", facultyId);
+
       toast.success("Timetable entry added successfully!");
       e.currentTarget.reset();
       setShowForm(false);
@@ -100,7 +134,7 @@ export default function ManageTimetable() {
     );
   }
 
-  if (!isAdmin && !isClassCoordinator) {
+  if (!isAdmin) {
     return (
       <FacultyLayout>
         <Card>
@@ -108,7 +142,7 @@ export default function ManageTimetable() {
             <div className="flex flex-col items-center gap-4">
               <AlertCircle className="h-12 w-12 text-muted-foreground" />
               <p className="text-center text-muted-foreground">
-                Access Denied: Only Class Coordinators and Administrators can manage timetables
+                Access Denied: Only Administrators can manage timetables
               </p>
             </div>
           </CardContent>
@@ -129,9 +163,7 @@ export default function ManageTimetable() {
           <div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">Manage Timetable</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              {profile && isClassCoordinator && !isAdmin
-                ? `${profile.assigned_course} - Year ${profile.assigned_year} - Section ${profile.assigned_section}`
-                : "Manage all timetables"}
+              Manage all timetables
             </p>
           </div>
           <Button onClick={() => setShowForm(!showForm)} className="w-full sm:w-auto">
@@ -154,20 +186,16 @@ export default function ManageTimetable() {
                     <Input
                       id="course_name"
                       name="course_name"
-                      defaultValue={isClassCoordinator && !isAdmin ? profile?.assigned_course : ""}
-                      readOnly={isClassCoordinator && !isAdmin}
                       required
                       className="text-sm"
                     />
                   </div>
                   <div className="space-y-1.5 sm:space-y-2">
-                    <Label htmlFor="year" className="text-xs sm:text-sm">Year</Label>
+                    <Label htmlFor="year" className="text-xs sm:text-sm">Semester</Label>
                     <Input
                       id="year"
                       name="year"
                       type="number"
-                      defaultValue={isClassCoordinator && !isAdmin ? profile?.assigned_year : ""}
-                      readOnly={isClassCoordinator && !isAdmin}
                       required
                       className="text-sm"
                     />
@@ -177,8 +205,6 @@ export default function ManageTimetable() {
                     <Input
                       id="section"
                       name="section"
-                      defaultValue={isClassCoordinator && !isAdmin ? profile?.assigned_section : ""}
-                      readOnly={isClassCoordinator && !isAdmin}
                       required
                       className="text-sm"
                     />
@@ -204,6 +230,28 @@ export default function ManageTimetable() {
                   <div className="space-y-1.5 sm:space-y-2">
                     <Label htmlFor="subject" className="text-xs sm:text-sm">Subject</Label>
                     <Input id="subject" name="subject" required className="text-sm" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="faculty_id" className="text-xs sm:text-sm">Faculty</Label>
+                    <Select name="faculty_id" required>
+                      <SelectTrigger className="text-sm">
+                        <SelectValue placeholder="Select faculty" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {facultyList.map((f) => (
+                          <SelectItem key={f.faculty_id} value={f.faculty_id}>
+                            {f.name} ({f.faculty_id})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label htmlFor="faculty_name" className="text-xs sm:text-sm">Faculty Name</Label>
+                    <Input id="faculty_name" name="faculty_name" required className="text-sm" />
                   </div>
                 </div>
 
